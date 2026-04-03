@@ -344,15 +344,13 @@
   }
 }
 
- . l p - p h o n e - p r e f i x   { 
-     f o n t - s i z e :   1 4 p x ; 
-     f o n t - w e i g h t :   6 0 0 ; 
-     c o l o r :   # f f f ; 
-     b a c k g r o u n d :   r g b a ( 2 5 5 , 2 5 5 , 2 5 5 , 0 . 0 6 ) ; 
-     p a d d i n g :   1 0 p x   1 4 p x ; 
-     b o r d e r - r a d i u s :   1 0 p x ; 
-     m a r g i n - r i g h t :   1 2 p x ; 
-     m a r g i n - l e f t :   2 p x ; 
- } 
-  
- 
+.lp-phone-prefix {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.06);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-right: 12px;
+  margin-left: 2px;
+}
