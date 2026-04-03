@@ -32,7 +32,7 @@ const SUB_CAT_ICON = {
 
 function App() {
   // ── User identity ──────────────────────────────────────────────
-  const [userName, setUserName]     = useState(() => localStorage.getItem('hb_username') || '');
+  const [userName, setUserName]     = useState('');
   const [nameInput, setNameInput]   = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
 
