@@ -4,18 +4,17 @@ import FoodSwipe from './FoodSwipe';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Category icons for the home screen slider
+// Category chips and which outlet NAMES serve them
 const HOME_CATS = [
-  { icon: '🍕', n: 'Pizza'   },
-  { icon: '🥙', n: 'Frankie' },
-  { icon: '🥪', n: 'Sandwich'},
-  { icon: '🍗', n: 'Chicken' },
-  { icon: '🍟', n: 'Fries'   },
-  { icon: '🫙', n: 'Chaat'   },
-  { icon: '🍰', n: 'Cakes'   },
+  { icon: '🍕', n: 'Pizza',    outlets: ['Oasis Kitchens'] },
+  { icon: '🌯', n: 'Frankie',  outlets: ['Oasis Kitchens'] },
+  { icon: '🥪', n: 'Sandwich', outlets: ['Oasis Kitchens'] },
+  { icon: '🍗', n: 'Chicken',  outlets: ['Oasis Kitchens'] },
+  { icon: '🍟', n: 'Fries',    outlets: ['Oasis Kitchens'] },
+  { icon: '🫙', n: 'Chaat',    outlets: ['Puri Vuri Express'] },
+  { icon: '🍰', n: 'Cakes',    outlets: ['Cake Stories'] },
 ];
 
-// Map subCategory names → emoji for section headers
 const SUB_CAT_ICON = {
   'Pizza (Veg)':     '🍕',
   'Pizza (Non-Veg)': '🍕',
@@ -31,15 +30,21 @@ const SUB_CAT_ICON = {
 };
 
 function App() {
-  const [currentView, setCurrentView] = useState('home');
-  const [outlets, setOutlets]         = useState([]);
+  // ── User identity ──────────────────────────────────────────────
+  const [userName, setUserName]     = useState(() => localStorage.getItem('hb_user') || '');
+  const [nameInput, setNameInput]   = useState('');
+  const [showGreeting, setShowGreeting] = useState(false);
+
+  // ── App state ──────────────────────────────────────────────────
+  const [currentView, setCurrentView]   = useState('home');
+  const [outlets, setOutlets]           = useState([]);
   const [selectedOutlet, setSelectedOutlet] = useState(null);
-  const [menu, setMenu]               = useState([]);
-  const [cart, setCart]               = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [menu, setMenu]                 = useState([]);
+  const [cart, setCart]                 = useState([]);
+  const [searchQuery, setSearchQuery]   = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
-  // Loading / feedback states
+  // ── Loading / feedback ──────────────────────────────────────────
   const [splashLoading, setSplashLoading]     = useState(true);
   const [menuLoading, setMenuLoading]         = useState(false);
   const [sortLoading, setSortLoading]         = useState(false);
@@ -52,23 +57,36 @@ function App() {
   const [errorMsg, setErrorMsg]               = useState('');
   const [paymentMethod, setPaymentMethod]     = useState('UPI');
 
-  const showError = (msg) => {
-    setErrorMsg(msg);
-    setTimeout(() => setErrorMsg(''), 3500);
-  };
+  const showError = (msg) => { setErrorMsg(msg); setTimeout(() => setErrorMsg(''), 3500); };
 
-  // ── Fetch Outlets ──────────────────────────────────────────────
+  // ── Fetch Outlets ───────────────────────────────────────────────
   useEffect(() => {
     fetch(`${API}/outlets`)
       .then(r => r.json())
-      .then(data => {
-        setOutlets(data);
-        setTimeout(() => setSplashLoading(false), 1200);
-      })
+      .then(data => { setOutlets(data); setTimeout(() => setSplashLoading(false), 1000); })
       .catch(() => setSplashLoading(false));
   }, []);
 
-  // ── Open Outlet Menu ───────────────────────────────────────────
+  // ── Filtered outlets by active category ─────────────────────────
+  const filteredOutlets = useMemo(() => {
+    if (activeCategory === 'All') return outlets;
+    const cat = HOME_CATS.find(c => c.n === activeCategory);
+    if (!cat) return outlets;
+    return outlets.filter(o => cat.outlets.includes(o.name));
+  }, [outlets, activeCategory]);
+
+  // ── Login handler ───────────────────────────────────────────────
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const name = nameInput.trim();
+    if (!name) return;
+    localStorage.setItem('hb_user', name);
+    setUserName(name);
+    setShowGreeting(true);
+    setTimeout(() => setShowGreeting(false), 1800);
+  };
+
+  // ── Outlet menu open ────────────────────────────────────────────
   const openOutletMenu = (outlet) => {
     setSelectedOutlet(outlet);
     setCurrentView('menu');
@@ -80,15 +98,15 @@ function App() {
       .catch(() => { showError('Failed to load menu.'); setMenuLoading(false); });
   };
 
-  // ── Seed / Re-Seed Data ────────────────────────────────────────
+  // ── Seed ────────────────────────────────────────────────────────
   const seedDataAndStart = () => {
     setSeedLoading(true);
     fetch(`${API}/seed`, { method: 'POST' })
       .then(() => window.location.reload())
-      .catch(() => { showError('Seed failed. Is the backend running?'); setSeedLoading(false); });
+      .catch(() => { showError('Seed failed.'); setSeedLoading(false); });
   };
 
-  // ── Sort Menu ──────────────────────────────────────────────────
+  // ── Sort ────────────────────────────────────────────────────────
   const sortMenu = useCallback((sortBy) => {
     if (!selectedOutlet) return;
     setSortLoading(true);
@@ -102,7 +120,7 @@ function App() {
       .catch(() => { showError('Sort failed.'); setSortLoading(false); });
   }, [selectedOutlet]);
 
-  // ── Search Menu ────────────────────────────────────────────────
+  // ── Search ──────────────────────────────────────────────────────
   const searchMenu = useCallback(() => {
     if (!selectedOutlet) return;
     if (!searchQuery.trim()) return sortMenu('name');
@@ -122,7 +140,7 @@ function App() {
     if (e.key === 'Escape') { setSearchQuery(''); sortMenu('name'); }
   };
 
-  // ── Add to Cart ────────────────────────────────────────────────
+  // ── Cart ────────────────────────────────────────────────────────
   const addToCart = (item) => {
     setAddingItem(item._id);
     fetch(`${API}/cart/add`, {
@@ -132,56 +150,45 @@ function App() {
     })
       .then(r => r.json())
       .then(data => { setCart(data); setTimeout(() => setAddingItem(null), 600); })
-      .catch(() => {
-        setCart(prev => [...prev, item]);
-        setTimeout(() => setAddingItem(null), 600);
-        showError('Added offline. Check connection.');
-      });
+      .catch(() => { setCart(prev => [...prev, item]); setTimeout(() => setAddingItem(null), 600); });
   };
 
-  // ── Remove from Cart ───────────────────────────────────────────
   const removeFromCart = (index) => {
     setRemovingItem(index);
-    setTimeout(() => {
-      setCart(prev => prev.filter((_, i) => i !== index));
-      setRemovingItem(null);
-    }, 350);
+    setTimeout(() => { setCart(prev => prev.filter((_, i) => i !== index)); setRemovingItem(null); }, 350);
   };
 
-  const popCart = () => { if (cart.length > 0) removeFromCart(cart.length - 1); };
-
-  // ── Checkout ───────────────────────────────────────────────────
+  // ── Checkout ────────────────────────────────────────────────────
   const handleCheckout = () => {
     if (cart.length === 0) return;
     setCheckoutLoading(true);
     fetch(`${API}/order/simulate`, { method: 'POST' })
       .then(r => r.json())
-      .then(data => {
-        setCheckoutLoading(false);
-        setOrderResult({ waitTime: data.waitTimeMinutes });
-        setCart([]);
-      })
-      .catch(() => { setCheckoutLoading(false); showError('Payment failed. Try again.'); });
+      .then(data => { setCheckoutLoading(false); setOrderResult({ waitTime: data.waitTimeMinutes }); setCart([]); })
+      .catch(() => { setCheckoutLoading(false); showError('Payment failed.'); });
   };
 
   const dismissOrder = () => { setOrderResult(null); setCurrentView('home'); };
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
-
-  // ── Group menu by subCategory (preserves order from DB) ────────
+  // ── Menu grouping ───────────────────────────────────────────────
   const menuGrouped = useMemo(() => {
     if (!menu.length) return [];
     const map = new Map();
-    menu.forEach(item => {
-      const key = item.subCategory || 'Other';
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(item);
-    });
-    return Array.from(map.entries()); // [[subCatName, items[]], ...]
+    menu.forEach(item => { const k = item.subCategory || 'Other'; if (!map.has(k)) map.set(k, []); map.get(k).push(item); });
+    return Array.from(map.entries());
   }, [menu]);
 
-  // ──────────────────────────────────────────────────────────────
+  const cartTotal = cart.reduce((sum, i) => sum + i.price, 0);
+
+  // ── Category chip click ─────────────────────────────────────────
+  const onCategoryClick = (cat) => {
+    if (activeCategory === cat.n) { setActiveCategory('All'); return; }
+    setActiveCategory(cat.n);
+  };
+
+  // ════════════════════════════════════════════════════════════════
   // SPLASH
+  // ════════════════════════════════════════════════════════════════
   if (splashLoading) {
     return (
       <div className="splash-screen">
@@ -191,35 +198,89 @@ function App() {
     );
   }
 
-  // WELCOME / GET STARTED
+  // ════════════════════════════════════════════════════════════════
+  // FIRST-TIME LOGIN (no name)
+  // ════════════════════════════════════════════════════════════════
+  if (!userName && !showGreeting) {
+    return (
+      <div className="login-screen">
+        <div className="login-card">
+          <div className="login-logo">Hunger<span>Buddy</span></div>
+          <p className="login-tagline">Your college food court, all in one place 🍽️</p>
+
+          <h2 className="login-title">What's your name?</h2>
+          <p className="login-sub">So we can greet you properly 😊</p>
+
+          <form onSubmit={handleLogin}>
+            <div className="login-input-wrap">
+              <input
+                id="name-input"
+                className="login-input"
+                type="text"
+                placeholder="e.g. Ayush"
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                autoFocus
+                maxLength={30}
+              />
+            </div>
+            <button className="btn-get-started" type="submit" disabled={!nameInput.trim()}>
+              Let's Go! 🚀
+            </button>
+          </form>
+
+          <p className="login-privacy">We only use your name to greet you — nothing else.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // GREETING OVERLAY (1.8s flash after login)
+  // ════════════════════════════════════════════════════════════════
+  if (showGreeting) {
+    return (
+      <div className="greeting-overlay">
+        <div className="greeting-emoji">👋</div>
+        <h1 className="greeting-title">Hey, {userName}!</h1>
+        <p className="greeting-sub">Your food adventure begins now…</p>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // WELCOME SCREEN (no outlets yet — needs seeding)
+  // ════════════════════════════════════════════════════════════════
   if (outlets.length === 0) {
     return (
       <div className="welcome-screen">
         <div className="welcome-content">
-          <h1>Welcome to<br /><span className="highlight-text">Hunger Buddy!</span> 👋</h1>
-          <p>Your college food court, all in one place.</p>
+          <h1>Hey {userName}!<br /><span className="highlight-text">Ready to eat? 🍕</span></h1>
+          <p>Set up the menu to get started.</p>
           <button className="btn-get-started" onClick={seedDataAndStart} disabled={seedLoading}>
-            {seedLoading ? <><span className="btn-spinner" /> Setting up...</> : 'Get Started'}
+            {seedLoading ? <><span className="btn-spinner" /> Setting up…</> : 'Load Menu'}
           </button>
         </div>
       </div>
     );
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  // MAIN APP
+  // ════════════════════════════════════════════════════════════════
   return (
     <div className="foodies-container">
 
-      {/* ── Error Toast ───────────────────────── */}
+      {/* Error Toast */}
       {errorMsg && <div className="error-toast">⚠️ {errorMsg}</div>}
 
-      {/* ── Order Success Overlay ──────────────── */}
+      {/* Order Success Overlay */}
       {orderResult && (
         <div className="order-success-overlay" onClick={dismissOrder}>
           <div className="order-success-card" onClick={e => e.stopPropagation()}>
             <div className="order-success-icon">🎉</div>
             <h2 className="order-success-title">Order Placed!</h2>
-            <p className="order-success-sub">Your order is confirmed. Estimated wait time:</p>
+            <p className="order-success-sub">Your order is confirmed, {userName}. Estimated wait:</p>
             <div className="order-wait-badge">
               <span className="order-wait-time">{orderResult.waitTime}</span>
               <span className="order-wait-label">mins</span>
@@ -230,31 +291,31 @@ function App() {
         </div>
       )}
 
-      {/* ── Checkout Loading ───────────────────── */}
+      {/* Checkout Loading */}
       {checkoutLoading && (
         <div className="loader-overlay">
           <div className="checkout-loading-wrap">
             <div className="loader-spinner" />
-            <h3>Processing Payment...</h3>
+            <h3>Processing Payment…</h3>
             <p>{paymentMethod}</p>
           </div>
         </div>
       )}
 
-      {/* ═══════════════ HOME VIEW ═══════════════ */}
+      {/* ══════ HOME ══════ */}
       {currentView === 'home' && (
         <div className="fade-in">
           <div className="top-header">
-            <div className="brand-title">Hunger<span>Buddy</span></div>
+            <div>
+              <div className="brand-title">Hunger<span>Buddy</span></div>
+              <div className="header-greeting">Hey, {userName} 👋</div>
+            </div>
             <button className="reseed-btn" onClick={seedDataAndStart} title="Reload menu data" disabled={seedLoading}>
               {seedLoading ? <span className="btn-spinner" /> : '🔄'}
             </button>
           </div>
 
-          <div className="section-title">
-            <h3>Special offers</h3>
-          </div>
-
+          <div className="section-title"><h3>Special offers</h3></div>
           <div className="promotional-banner">
             <div className="promo-text">
               <h1>20%</h1>
@@ -269,7 +330,7 @@ function App() {
               <div
                 className={`category-item ${activeCategory === cat.n ? 'active' : ''}`}
                 key={cat.n}
-                onClick={() => setActiveCategory(activeCategory === cat.n ? 'All' : cat.n)}
+                onClick={() => onCategoryClick(cat)}
               >
                 <div className="category-icon">{cat.icon}</div>
                 <p>{cat.n}</p>
@@ -277,22 +338,48 @@ function App() {
             ))}
           </div>
 
-          {/* Discover Mode Entry */}
-          <button className="discover-btn" onClick={() => setCurrentView('swipe')}>
-            <div className="discover-btn__left">
-              <h4>🃏 Discover Mode</h4>
-              <p>Swipe to explore &amp; add food to cart</p>
+          {/* Category filter banner */}
+          {activeCategory !== 'All' && (
+            <div className="cat-filter-banner">
+              <span>
+                {HOME_CATS.find(c => c.n === activeCategory)?.icon} Showing outlets with <strong>{activeCategory}</strong>
+              </span>
+              <button className="cat-filter-clear" onClick={() => setActiveCategory('All')}>✕ Clear</button>
             </div>
-            <div className="discover-btn__icon">🍽️</div>
-          </button>
+          )}
 
+          {/* Discover Mode */}
+          {activeCategory === 'All' && (
+            <button className="discover-btn" onClick={() => setCurrentView('swipe')}>
+              <div className="discover-btn__left">
+                <h4>🃏 Discover Mode</h4>
+                <p>Swipe to explore &amp; add food to cart</p>
+              </div>
+              <div className="discover-btn__icon">🍽️</div>
+            </button>
+          )}
+
+          {/* Outlets */}
           <div className="section-title" style={{ marginTop: 4 }}>
-            <h3>Our Outlets</h3>
-            <span style={{ color: 'var(--accent-green)', fontSize: 13 }}>See all</span>
+            <h3>
+              {activeCategory === 'All'
+                ? 'Our Outlets'
+                : `${HOME_CATS.find(c => c.n === activeCategory)?.icon} ${activeCategory} Outlets`}
+            </h3>
+            {activeCategory === 'All' && <span style={{ color: 'var(--accent-green)', fontSize: 13 }}>See all</span>}
           </div>
 
+          {/* No outlets match */}
+          {filteredOutlets.length === 0 && (
+            <div className="empty-menu">
+              <span>🔍</span>
+              <p>No outlets found for "{activeCategory}"</p>
+              <button className="filter-btn" onClick={() => setActiveCategory('All')}>Clear filter</button>
+            </div>
+          )}
+
           <div className="outlets-horizontal">
-            {outlets.map(o => (
+            {filteredOutlets.map(o => (
               <div className="outlet-card" key={o._id} onClick={() => openOutletMenu(o)}>
                 <div className="outlet-img-wrapper">
                   <img src={o.imageUrl} alt={o.name} />
@@ -308,7 +395,7 @@ function App() {
         </div>
       )}
 
-      {/* ═══════════════ SWIPE VIEW ══════════════ */}
+      {/* ══════ SWIPE ══════ */}
       {currentView === 'swipe' && (
         <FoodSwipe
           onBack={() => setCurrentView('home')}
@@ -317,30 +404,26 @@ function App() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ cart, newItem: item })
-            })
-              .then(r => r.json())
-              .then(data => setCart(data))
-              .catch(() => setCart(prev => [...prev, item]));
+            }).then(r => r.json()).then(data => setCart(data)).catch(() => setCart(prev => [...prev, item]));
           }}
         />
       )}
 
-      {/* ═══════════════ MENU VIEW ═══════════════ */}
+      {/* ══════ MENU ══════ */}
       {currentView === 'menu' && (
         <div className="screen-slide-in">
           <div className="top-header">
             <button className="back-btn" onClick={() => setCurrentView('home')}>←</button>
-            <div className="brand-title" style={{ fontSize: 18 }}>{selectedOutlet?.name}</div>
+            <div className="brand-title" style={{ fontSize: 17 }}>{selectedOutlet?.name}</div>
             <div style={{ width: 32 }} />
           </div>
 
-          {/* Search & Sort */}
           <div className="search-filter-bar">
             <div className="search-input-wrap">
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search menu..."
+                placeholder="Search menu…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKey}
@@ -351,28 +434,22 @@ function App() {
               )}
             </div>
             <button className={`filter-btn ${sortLoading ? 'loading' : ''}`} onClick={() => sortMenu('price')} disabled={sortLoading}>
-              {sortLoading ? '...' : 'Sort ₹'}
+              {sortLoading ? '…' : 'Sort ₹'}
             </button>
             <button className="filter-btn" onClick={() => sortMenu('name')} disabled={sortLoading}>A–Z</button>
           </div>
 
-          {/* Menu Feed — grouped by subCategory */}
           <div className="menu-feed">
             {menuLoading ? (
-              <div className="menu-loading">
-                {[1, 2, 3, 4].map(i => <div className="skeleton-card" key={i} />)}
-              </div>
+              <div className="menu-loading">{[1,2,3,4].map(i => <div className="skeleton-card" key={i} />)}</div>
             ) : menuGrouped.length > 0 ? (
               menuGrouped.map(([catName, items]) => (
                 <div key={catName} className="menu-section">
-                  {/* Category Section Header */}
                   <div className="menu-section-header">
                     <span className="menu-section-icon">{SUB_CAT_ICON[catName] || '🍽️'}</span>
                     <span className="menu-section-title">{catName}</span>
                     <span className="menu-section-count">{items.length}</span>
                   </div>
-
-                  {/* Items within section */}
                   {items.map(item => (
                     <div className="menu-feed-item" key={item._id}>
                       <div className="menu-feed-content">
@@ -389,7 +466,7 @@ function App() {
                             className={`btn-add-round ${addingItem === item._id ? 'adding' : ''}`}
                             onClick={() => addToCart(item)}
                             disabled={addingItem === item._id}
-                            aria-label={`Add ${item.name} to cart`}
+                            aria-label={`Add ${item.name}`}
                           >
                             {addingItem === item._id ? '✓' : '+'}
                           </button>
@@ -407,9 +484,7 @@ function App() {
                 <span>🍽️</span>
                 <p>No items found.</p>
                 {searchQuery && (
-                  <button className="filter-btn" onClick={() => { setSearchQuery(''); sortMenu('name'); }}>
-                    Clear search
-                  </button>
+                  <button className="filter-btn" onClick={() => { setSearchQuery(''); sortMenu('name'); }}>Clear search</button>
                 )}
               </div>
             )}
@@ -417,15 +492,13 @@ function App() {
         </div>
       )}
 
-      {/* ═══════════════ CART VIEW ═══════════════ */}
+      {/* ══════ CART ══════ */}
       {currentView === 'cart' && (
         <div className="screen-slide-in" style={{ zIndex: 300 }}>
           <div className="top-header">
             <button className="back-btn" onClick={() => setCurrentView('menu')}>←</button>
             <div className="brand-title" style={{ fontSize: 20 }}>My Cart</div>
-            <button className="back-btn" style={{ fontSize: 15, color: 'var(--danger)' }} onClick={popCart} disabled={cart.length === 0}>
-              ↺ Undo
-            </button>
+            <button className="back-btn" style={{ fontSize: 13, color: 'var(--danger)' }} onClick={() => removeFromCart(cart.length - 1)} disabled={cart.length === 0}>↺</button>
           </div>
 
           <div className="cart-items-list">
@@ -436,9 +509,7 @@ function App() {
                   <h4>{item.name}</h4>
                   <p>₹{item.price}</p>
                 </div>
-                <button className="cart-item-delete" onClick={() => removeFromCart(idx)} aria-label={`Remove ${item.name}`}>
-                  🗑
-                </button>
+                <button className="cart-item-delete" onClick={() => removeFromCart(idx)} aria-label={`Remove ${item.name}`}>🗑</button>
               </div>
             ))}
             {cart.length === 0 && (
@@ -456,41 +527,31 @@ function App() {
                 <span>{cart.length} item{cart.length > 1 ? 's' : ''}</span>
                 <span className="menu-feed-price">₹{cartTotal}</span>
               </div>
-
               <div className="payment-section">
                 <h3 style={{ marginBottom: 15 }}>Payment Method</h3>
                 {['UPI', 'Credit/Debit Card', 'Net Banking'].map(method => (
-                  <div
-                    key={method}
-                    className={`payment-option ${paymentMethod === method ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod(method)}
-                  >
+                  <div key={method} className={`payment-option ${paymentMethod === method ? 'selected' : ''}`} onClick={() => setPaymentMethod(method)}>
                     <input type="radio" checked={paymentMethod === method} readOnly />
                     <label>{method}</label>
                     {paymentMethod === method && <span className="pay-check">✓</span>}
                   </div>
                 ))}
               </div>
-
-              <button className={`btn-large ${checkoutLoading ? 'btn-large--loading' : ''}`} onClick={handleCheckout} disabled={checkoutLoading}>
-                {checkoutLoading
-                  ? <><span className="btn-spinner" /> Processing...</>
-                  : <>Pay ₹{cartTotal} via {paymentMethod}</>
-                }
+              <button className="btn-large" onClick={handleCheckout} disabled={checkoutLoading}>
+                {checkoutLoading ? <><span className="btn-spinner" /> Processing…</> : <>Pay ₹{cartTotal} via {paymentMethod}</>}
               </button>
             </>
           )}
         </div>
       )}
 
-      {/* ── Sticky Cart Bar ────────────────────── */}
+      {/* Sticky Cart Bar */}
       {cart.length > 0 && currentView !== 'cart' && currentView !== 'swipe' && (
         <div className="sticky-cart-bar" onClick={() => setCurrentView('cart')}>
           <span>{cart.length} item{cart.length > 1 ? 's' : ''} | ₹{cartTotal}</span>
           <span>Go to Cart ➝</span>
         </div>
       )}
-
     </div>
   );
 }
