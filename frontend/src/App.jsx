@@ -347,6 +347,9 @@ function App() {
           <button className="btn-get-started" onClick={seedDataAndStart} disabled={seedLoading}>
             {seedLoading ? <><span className="btn-spinner" /> Setting up…</> : 'Load Menu'}
           </button>
+          <button onClick={handleLogout} style={{marginTop: '20px', width: '100%', background: 'transparent', border: 'none', color: '#888', textDecoration: 'underline', cursor: 'pointer'}}>
+            Not {userName}? Go back to login
+          </button>
         </div>
       </div>
     );
