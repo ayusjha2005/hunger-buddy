@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import FoodSwipe from './FoodSwipe';
+import LoginPage from './LoginPage';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -33,7 +34,6 @@ function App() {
   // ── User identity ──────────────────────────────────────────────
   const [userName, setUserName]     = useState(() => localStorage.getItem('hb_username') || '');
   const [nameInput, setNameInput]   = useState('');
-  const [phoneInput, setPhoneInput] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
 
   // ── App state ──────────────────────────────────────────────────
@@ -91,7 +91,6 @@ function App() {
     localStorage.removeItem('hb_username');
     setUserName('');
     setNameInput('');
-    setPhoneInput('');
   };
 
   // ── Outlet menu open ────────────────────────────────────────────
@@ -207,76 +206,10 @@ function App() {
   }
 
   // ════════════════════════════════════════════════════════════════
-  // FIRST-TIME LOGIN (no name)
+  // FIRST-TIME LOGIN — new two-step LoginPage
   // ════════════════════════════════════════════════════════════════
   if (!userName && !showGreeting) {
-    return (
-      <div className="login-screen-v2">
-        <div className="login-top-section">
-          {/* Floating elements */}
-          <div className="float-item float-item-1">🍕</div>
-          <div className="float-item float-item-2">🍔</div>
-          <div className="float-item float-item-3">🥤</div>
-          <div className="float-item float-item-4">🥗</div>
-          
-          <div className="login-brand">
-            <h1 className="logo-text">
-              HUNGER<br/><span className="logo-green">BUDDY</span>
-            </h1>
-            <svg className="smile-svg" viewBox="0 0 100 20" width="80">
-              <path d="M 10 5 Q 50 25 90 5" fill="transparent" stroke="white" strokeWidth="4" strokeLinecap="round" />
-              <circle cx="50" cy="18" r="3" fill="white" />
-            </svg>
-          </div>
-          
-          <h2 className="welcome-text">Welcome!</h2>
-          <p className="welcome-sub">Let's get you started<br/>with something delicious 💚</p>
-        </div>
-
-        <div className="login-bottom-sheet">
-          <form onSubmit={handleLogin}>
-            <div className="input-group">
-              <label><span className="input-icon">👤</span> Enter your name</label>
-              <div className="input-wrapper">
-                <span className="inner-icon">👤</span>
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  value={nameInput}
-                  onChange={e => setNameInput(e.target.value)}
-                  maxLength={30}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label><span className="input-icon">📞</span> Phone number</label>
-              <div className="input-wrapper phone-wrapper">
-                <span className="inner-icon">📞</span>
-                <div className="phone-prefix">+91</div>
-                <input
-                  type="tel"
-                  placeholder="Enter your mobile number"
-                  value={phoneInput}
-                  onChange={e => setPhoneInput(e.target.value)}
-                  maxLength={10}
-                />
-              </div>
-            </div>
-
-            <button className="btn-continue" type="submit" disabled={!nameInput.trim()}>
-              Continue <span className="arrow-circle">➔</span>
-            </button>
-            
-            <p className="terms-text">
-              By continuing, you agree to our<br/>
-              <span className="green-link">Terms of Use</span> and <span className="green-link">Privacy Policy</span>.
-            </p>
-          </form>
-        </div>
-      </div>
-    );
+    return <LoginPage onLogin={handleLogin} />;
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -352,13 +285,14 @@ function App() {
           <div className="top-header">
             <div>
               <div className="brand-title">Hunger<span>Buddy</span></div>
-              <div className="header-greeting" onClick={handleLogout} style={{ cursor: 'pointer', title: 'Click to logout' }}>
-                Hey, {userName} 👋 <span>(Logout)</span>
-              </div>
+              <div className="header-greeting">Hey, {userName} 👋</div>
             </div>
-            <button className="reseed-btn" onClick={seedDataAndStart} title="Reload menu data" disabled={seedLoading}>
-              {seedLoading ? <span className="btn-spinner" /> : '🔄'}
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="reseed-btn" onClick={handleLogout} title="Logout" style={{ fontSize: 16 }}>🚪</button>
+              <button className="reseed-btn" onClick={seedDataAndStart} title="Reload menu data" disabled={seedLoading}>
+                {seedLoading ? <span className="btn-spinner" /> : '🔄'}
+              </button>
+            </div>
           </div>
 
           <div className="section-title"><h3>Special offers</h3></div>
