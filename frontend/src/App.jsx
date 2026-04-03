@@ -32,7 +32,9 @@ const SUB_CAT_ICON = {
 function App() {
   // ── User identity ──────────────────────────────────────────────
   const [userName, setUserName]     = useState(() => localStorage.getItem('hb_username') || '');
+  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('hb_username'));
   const [nameInput, setNameInput]   = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
 
   // ── App state ──────────────────────────────────────────────────
@@ -90,6 +92,8 @@ function App() {
     localStorage.removeItem('hb_username');
     setUserName('');
     setNameInput('');
+    setPhoneInput('');
+    setShowWelcome(true);
   };
 
   // ── Outlet menu open ────────────────────────────────────────────
@@ -205,37 +209,114 @@ function App() {
   }
 
   // ════════════════════════════════════════════════════════════════
-  // FIRST-TIME LOGIN (no name)
+  // 1) WELCOME SCREEN (Left design)
+  // ════════════════════════════════════════════════════════════════
+  if (showWelcome && !userName && !showGreeting) {
+    return (
+      <div className="welcome-screen-v2">
+        <div className="welcome-top">
+          <div className="login-brand" style={{marginTop: '20px', zIndex: 10}}>
+            <h1 className="logo-text text-center">
+              HUNGER<br/><span className="logo-green">BUDDY</span>
+            </h1>
+            <svg className="smile-svg" viewBox="0 0 100 20" width="80" style={{marginTop: '-5px'}}>
+              <path d="M 10 5 Q 50 25 90 5" fill="transparent" stroke="white" strokeWidth="4" strokeLinecap="round" />
+              <circle cx="50" cy="18" r="3" fill="white" />
+            </svg>
+            <p className="welcome-tagline-text">Good Food, Great Mood</p>
+          </div>
+          
+          <div className="welcome-food-hero">
+            <div className="hero-emoji">🍔</div>
+            <div className="hero-emoji side-box">🥗</div>
+            <div className="hero-emoji drink">🥤</div>
+          </div>
+        </div>
+
+        <div className="welcome-bottom">
+          <h2 className="welcome-title">Your Cravings,<br/><span className="logo-green">Our Mission!</span></h2>
+          <p className="welcome-desc">Discover delicious meals from your<br/>favorite restaurants, fast and easy.</p>
+          
+          <button className="btn-started-fill" onClick={() => setShowWelcome(false)}>
+            Let's Get Started
+            <span className="arrow-circle arrow-circle-white">➔</span>
+          </button>
+          <button className="btn-started-outline" onClick={() => setShowWelcome(false)}>
+            Explore Menu
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // 2) FIRST-TIME LOGIN (no name - Right design)
   // ════════════════════════════════════════════════════════════════
   if (!userName && !showGreeting) {
     return (
-      <div className="login-screen">
-        <div className="login-card">
-          <div className="login-logo">Hunger<span>Buddy</span></div>
-          <p className="login-tagline">Your campus food court, all in one place 🍽️</p>
+      <div className="login-screen-v2">
+        <div className="login-top-section">
+          {/* Floating elements */}
+          <div className="float-item float-item-1">🍕</div>
+          <div className="float-item float-item-2">🍔</div>
+          <div className="float-item float-item-3">🥤</div>
+          <div className="float-item float-item-4">🥗</div>
+          
+          <div className="login-brand">
+            <h1 className="logo-text">
+              HUNGER<br/><span className="logo-green">BUDDY</span>
+            </h1>
+            <svg className="smile-svg" viewBox="0 0 100 20" width="80">
+              <path d="M 10 5 Q 50 25 90 5" fill="transparent" stroke="white" strokeWidth="4" strokeLinecap="round" />
+              <circle cx="50" cy="18" r="3" fill="white" />
+            </svg>
+          </div>
+          
+          <h2 className="welcome-text">Welcome!</h2>
+          <p className="welcome-sub">Let's get you started<br/>with something delicious 💚</p>
+        </div>
 
-          <h2 className="login-title">Hello VITian! 🎓</h2>
-          <p className="login-sub">Enter your name to start ordering 😊</p>
-
+        <div className="login-bottom-sheet">
           <form onSubmit={handleLogin}>
-            <div className="login-input-wrap">
-              <input
-                id="name-input"
-                className="login-input"
-                type="text"
-                placeholder="e.g. Ayush"
-                value={nameInput}
-                onChange={e => setNameInput(e.target.value)}
-                autoFocus
-                maxLength={30}
-              />
+            <div className="input-group">
+              <label><span className="input-icon">👤</span> Enter your name</label>
+              <div className="input-wrapper">
+                <span className="inner-icon">👤</span>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={nameInput}
+                  onChange={e => setNameInput(e.target.value)}
+                  maxLength={30}
+                  required
+                />
+              </div>
             </div>
-            <button className="btn-get-started" type="submit" disabled={!nameInput.trim()}>
-              Let's Go! 🚀
-            </button>
-          </form>
 
-          <p className="login-privacy">We only use your name to greet you — nothing else.</p>
+            <div className="input-group">
+              <label><span className="input-icon">📞</span> Phone number</label>
+              <div className="input-wrapper phone-wrapper">
+                <span className="inner-icon">📞</span>
+                <div className="phone-prefix">+91</div>
+                <input
+                  type="tel"
+                  placeholder="Enter your mobile number"
+                  value={phoneInput}
+                  onChange={e => setPhoneInput(e.target.value)}
+                  maxLength={10}
+                />
+              </div>
+            </div>
+
+            <button className="btn-continue" type="submit" disabled={!nameInput.trim()}>
+              Continue <span className="arrow-circle">➔</span>
+            </button>
+            
+            <p className="terms-text">
+              By continuing, you agree to our<br/>
+              <span className="green-link">Terms of Use</span> and <span className="green-link">Privacy Policy</span>.
+            </p>
+          </form>
         </div>
       </div>
     );
