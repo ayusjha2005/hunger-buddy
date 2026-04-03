@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build output
+frontend/dist/
+frontend/.vite/
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.production
+frontend/.env
+frontend/.env.production
+backend/.env
+
+# C++ build artifacts (Windows)
+cpp_engine/engine.exe
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json

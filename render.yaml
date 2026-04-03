@@ -1,0 +1,16 @@
+# Render deployment config
+services:
+  - type: web
+    name: hungerbuddy-backend
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: "cd backend && npm install && g++ -O2 -std=c++17 -o cpp_engine/engine cpp_engine/main.cpp"
+    startCommand: "cd backend && node server.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false   # Set manually in Render dashboard
+      - key: FRONTEND_URL
+        sync: false   # Set after Vercel deploy, e.g. https://hunger-buddy.vercel.app

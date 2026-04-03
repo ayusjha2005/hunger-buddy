@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "HungerBuddy food court backend",
+  "main": "server.js",
+  "scripts": {
+    "start":   "node server.js",
+    "dev":     "node server.js",
+    "build":   "g++ -O2 -std=c++17 -o ../cpp_engine/engine ../cpp_engine/main.cpp && echo 'C++ engine compiled'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors":     "^2.8.6",
+    "dotenv":   "^17.4.0",
+    "express":  "^5.2.1",
+    "mongoose": "^9.3.3"
+  }
+}
