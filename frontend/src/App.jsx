@@ -77,9 +77,7 @@ function App() {
   }, [outlets, activeCategory]);
 
   // ── Login handler ───────────────────────────────────────────────
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const name = nameInput.trim();
+  const handleLogin = (name) => {
     if (!name) return;
     localStorage.setItem('hb_username', name);
     setUserName(name);
