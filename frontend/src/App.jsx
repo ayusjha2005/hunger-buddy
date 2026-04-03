@@ -32,7 +32,6 @@ const SUB_CAT_ICON = {
 function App() {
   // ── User identity ──────────────────────────────────────────────
   const [userName, setUserName]     = useState(() => localStorage.getItem('hb_username') || '');
-  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('hb_username'));
   const [nameInput, setNameInput]   = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
@@ -93,7 +92,6 @@ function App() {
     setUserName('');
     setNameInput('');
     setPhoneInput('');
-    setShowWelcome(true);
   };
 
   // ── Outlet menu open ────────────────────────────────────────────
@@ -209,48 +207,7 @@ function App() {
   }
 
   // ════════════════════════════════════════════════════════════════
-  // 1) WELCOME SCREEN (Left design)
-  // ════════════════════════════════════════════════════════════════
-  if (showWelcome && !userName && !showGreeting) {
-    return (
-      <div className="welcome-screen-v2">
-        <div className="welcome-top">
-          <div className="login-brand" style={{marginTop: '20px', zIndex: 10}}>
-            <h1 className="logo-text text-center">
-              HUNGER<br/><span className="logo-green">BUDDY</span>
-            </h1>
-            <svg className="smile-svg" viewBox="0 0 100 20" width="80" style={{marginTop: '-5px'}}>
-              <path d="M 10 5 Q 50 25 90 5" fill="transparent" stroke="white" strokeWidth="4" strokeLinecap="round" />
-              <circle cx="50" cy="18" r="3" fill="white" />
-            </svg>
-            <p className="welcome-tagline-text">Good Food, Great Mood</p>
-          </div>
-          
-          <div className="welcome-food-hero">
-            <div className="hero-emoji">🍔</div>
-            <div className="hero-emoji side-box">🥗</div>
-            <div className="hero-emoji drink">🥤</div>
-          </div>
-        </div>
-
-        <div className="welcome-bottom">
-          <h2 className="welcome-title">Your Cravings,<br/><span className="logo-green">Our Mission!</span></h2>
-          <p className="welcome-desc">Discover delicious meals from your<br/>favorite restaurants, fast and easy.</p>
-          
-          <button className="btn-started-fill" onClick={() => setShowWelcome(false)}>
-            Let's Get Started
-            <span className="arrow-circle arrow-circle-white">➔</span>
-          </button>
-          <button className="btn-started-outline" onClick={() => setShowWelcome(false)}>
-            Explore Menu
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // 2) FIRST-TIME LOGIN (no name - Right design)
+  // FIRST-TIME LOGIN (no name)
   // ════════════════════════════════════════════════════════════════
   if (!userName && !showGreeting) {
     return (
@@ -272,8 +229,8 @@ function App() {
             </svg>
           </div>
           
-          <h2 className="welcome-text">Hello VITian! 🎓</h2>
-          <p className="welcome-sub">Enter your name to start ordering 😊</p>
+          <h2 className="welcome-text">Welcome!</h2>
+          <p className="welcome-sub">Let's get you started<br/>with something delicious 💚</p>
         </div>
 
         <div className="login-bottom-sheet">
@@ -346,9 +303,6 @@ function App() {
           <p>Set up the menu to get started.</p>
           <button className="btn-get-started" onClick={seedDataAndStart} disabled={seedLoading}>
             {seedLoading ? <><span className="btn-spinner" /> Setting up…</> : 'Load Menu'}
-          </button>
-          <button onClick={handleLogout} style={{marginTop: '20px', width: '100%', background: 'transparent', border: 'none', color: '#888', textDecoration: 'underline', cursor: 'pointer'}}>
-            Not {userName}? Go back to login
           </button>
         </div>
       </div>
