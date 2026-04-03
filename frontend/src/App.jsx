@@ -31,7 +31,7 @@ const SUB_CAT_ICON = {
 
 function App() {
   // ── User identity ──────────────────────────────────────────────
-  const [userName, setUserName]     = useState(() => localStorage.getItem('hb_user') || '');
+  const [userName, setUserName]     = useState(() => localStorage.getItem('hb_username') || '');
   const [nameInput, setNameInput]   = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
 
@@ -80,10 +80,16 @@ function App() {
     e.preventDefault();
     const name = nameInput.trim();
     if (!name) return;
-    localStorage.setItem('hb_user', name);
+    localStorage.setItem('hb_username', name);
     setUserName(name);
     setShowGreeting(true);
     setTimeout(() => setShowGreeting(false), 1800);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('hb_username');
+    setUserName('');
+    setNameInput('');
   };
 
   // ── Outlet menu open ────────────────────────────────────────────
@@ -308,7 +314,9 @@ function App() {
           <div className="top-header">
             <div>
               <div className="brand-title">Hunger<span>Buddy</span></div>
-              <div className="header-greeting">Hey, {userName} 👋</div>
+              <div className="header-greeting" onClick={handleLogout} style={{ cursor: 'pointer', title: 'Click to logout' }}>
+                Hey, {userName} 👋 <span>(Logout)</span>
+              </div>
             </div>
             <button className="reseed-btn" onClick={seedDataAndStart} title="Reload menu data" disabled={seedLoading}>
               {seedLoading ? <span className="btn-spinner" /> : '🔄'}

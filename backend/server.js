@@ -189,7 +189,7 @@ app.post('/api/seed', async (req, res) => {
         await Outlet.insertMany([oasis, puriVuri, cakeStories]);
 
         const IMG = {
-            pizzaVeg:      'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=400&q=80',
+            pizzaVeg:      'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=400&q=80',
             pizzaVeg2:     'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
             pizzaVeg3:     'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=400&q=80',
             pizzaChicken:  'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=400&q=80',
