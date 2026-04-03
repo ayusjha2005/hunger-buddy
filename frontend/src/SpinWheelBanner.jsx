@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import './SpinWheelBanner.css';
 
 const REWARDS = [
-  { label: 'FREE DESSERT', color: '#B34EFF' },
-  { label: '20% OFF', color: '#00B8FF' },
-  { label: '₹100 OFF', color: '#FFB000' },
-  { label: 'BETTER LUCK NEXT TIME', color: '#FF3B30' },
-  { label: 'FREE DRINK', color: '#4CDE78' },
+  { label: 'FREE\nDESSERT', color: '#B34EFF' },
+  { label: '20%\nOFF', color: '#00B8FF' },
+  { label: '₹100\nOFF', color: '#FFB000' },
+  { label: 'BETTER\nLUCK', color: '#FF3B30' },
+  { label: 'FREE\nDRINK', color: '#4CDE78' },
 ];
 
 export default function SpinWheelBanner() {
@@ -79,7 +79,22 @@ export default function SpinWheelBanner() {
                 transform: `rotate(${degree}deg)`
               }}
             >
-              {/* Optional: Add text inside slices if there's space, but for a 130px wheel, colors are enough */}
+              {REWARDS.map((r, i) => {
+                const rotation = 36 + (i * 72);
+                return (
+                  <div 
+                    key={i} 
+                    className="wheel-text"
+                    style={{ transform: `rotate(${rotation}deg)` }}
+                  >
+                    <div className="wheel-label">
+                      {r.label.split('\n').map((line, idx) => (
+                        <div key={idx}>{line}</div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             {/* The Pointer */}
             <div className="wheel-pointer"></div>
