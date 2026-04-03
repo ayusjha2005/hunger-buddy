@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+
 const { spawn } = require('child_process');
 const path = require('path');
 require('dotenv').config();
