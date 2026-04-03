@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import FoodSwipe from './FoodSwipe';
+import SpinWheelBanner from './SpinWheelBanner';
 import LoginPage from './LoginPage';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -293,14 +294,8 @@ function App() {
             </div>
           </div>
 
-          <div className="section-title"><h3>Special offers</h3></div>
-          <div className="promotional-banner">
-            <div className="promo-text">
-              <h1>20%</h1>
-              <p>off on all<br />Pizzas today</p>
-            </div>
-            <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=400&q=80" alt="Pizza offer" />
-          </div>
+          {/* Spin Wheel Banner replaces Special offers */}
+          <SpinWheelBanner />
 
           {/* Category Chips */}
           <div className="categories-slider">
