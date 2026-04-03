@@ -212,10 +212,10 @@ function App() {
       <div className="login-screen">
         <div className="login-card">
           <div className="login-logo">Hunger<span>Buddy</span></div>
-          <p className="login-tagline">Your college food court, all in one place 🍽️</p>
+          <p className="login-tagline">Your campus food court, all in one place 🍽️</p>
 
-          <h2 className="login-title">What's your name?</h2>
-          <p className="login-sub">So we can greet you properly 😊</p>
+          <h2 className="login-title">Hello VITian! 🎓</h2>
+          <p className="login-sub">Enter your name to start ordering 😊</p>
 
           <form onSubmit={handleLogin}>
             <div className="login-input-wrap">
