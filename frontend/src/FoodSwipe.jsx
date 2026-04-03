@@ -1,29 +1,28 @@
 import { useState, useRef, useEffect } from 'react';
 
-// All menu items across all outlets flattened into a swipeable deck
-const SWIPE_THRESHOLD = 80; // px drag before commit
+const SWIPE_THRESHOLD = 80;
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function FoodSwipe({ onBack, onAddToCart }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems]               = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState(null); // 'left' | 'right' | null
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragX, setDragX] = useState(0);
-  const [likedItems, setLikedItems] = useState([]);
-  const [showResult, setShowResult] = useState(null); // 'liked' | 'skipped'
-  const [allDone, setAllDone] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [swipeDirection, setSwipeDirection] = useState(null);
+  const [isDragging, setIsDragging]     = useState(false);
+  const [dragX, setDragX]               = useState(0);
+  const [likedItems, setLikedItems]     = useState([]);
+  const [showResult, setShowResult]     = useState(null);
+  const [allDone, setAllDone]           = useState(false);
+  const [loading, setLoading]           = useState(true);
 
   const dragStartX = useRef(0);
-  const cardRef = useRef(null);
+  const cardRef    = useRef(null);
 
   useEffect(() => {
-    // Fetch all items from all outlets
-    fetch('http://localhost:5000/api/outlets')
+    fetch(`${API}/outlets`)
       .then(r => r.json())
       .then(outlets => {
         const fetches = outlets.map(o =>
-          fetch(`http://localhost:5000/api/menu/${o._id}`)
+          fetch(`${API}/menu/${o._id}`)
             .then(r => r.json())
             .then(items => items.map(item => ({ ...item, outletName: o.name })))
         );
@@ -31,7 +30,6 @@ function FoodSwipe({ onBack, onAddToCart }) {
       })
       .then(allMenus => {
         const flat = allMenus.flat();
-        // Shuffle for fun
         const shuffled = flat.sort(() => Math.random() - 0.5);
         setItems(shuffled);
         setLoading(false);
@@ -47,8 +45,7 @@ function FoodSwipe({ onBack, onAddToCart }) {
 
     if (direction === 'right' && currentItem) {
       setLikedItems(prev => [...prev, currentItem]);
-      // Add to cart via API
-      fetch('http://localhost:5000/api/cart/add', {
+      fetch(`${API}/cart/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart: [], newItem: currentItem })
@@ -61,52 +58,34 @@ function FoodSwipe({ onBack, onAddToCart }) {
       setDragX(0);
       setShowResult(null);
       const next = currentIndex + 1;
-      if (next >= items.length) {
-        setAllDone(true);
-      } else {
-        setCurrentIndex(next);
-      }
+      if (next >= items.length) setAllDone(true);
+      else setCurrentIndex(next);
     }, 420);
   };
 
-  // ---- Touch / Mouse drag handlers ----
-  const onDragStart = (clientX) => {
-    dragStartX.current = clientX;
-    setIsDragging(true);
-  };
-
-  const onDragMove = (clientX) => {
-    if (!isDragging) return;
-    const delta = clientX - dragStartX.current;
-    setDragX(delta);
-  };
-
-  const onDragEnd = () => {
+  const onDragStart = (clientX) => { dragStartX.current = clientX; setIsDragging(true); };
+  const onDragMove  = (clientX) => { if (!isDragging) return; setDragX(clientX - dragStartX.current); };
+  const onDragEnd   = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    if (dragX > SWIPE_THRESHOLD) commitSwipe('right');
+    if (dragX >  SWIPE_THRESHOLD) commitSwipe('right');
     else if (dragX < -SWIPE_THRESHOLD) commitSwipe('left');
     else setDragX(0);
   };
 
-  // Mouse events
   const onMouseDown = (e) => onDragStart(e.clientX);
   const onMouseMove = (e) => { if (isDragging) onDragMove(e.clientX); };
-  const onMouseUp = () => onDragEnd();
+  const onMouseUp   = ()  => onDragEnd();
 
-  // Touch events
   const onTouchStart = (e) => onDragStart(e.touches[0].clientX);
-  const onTouchMove = (e) => onDragMove(e.touches[0].clientX);
-  const onTouchEnd = () => onDragEnd();
+  const onTouchMove  = (e) => onDragMove(e.touches[0].clientX);
+  const onTouchEnd   = ()  => onDragEnd();
 
-  // Card transforms
   const getCardStyle = () => {
-    if (swipeDirection === 'left') {
-      return { transform: 'translateX(-120%) rotate(-25deg)', opacity: 0, transition: 'all 0.42s cubic-bezier(0.4,0,0.2,1)' };
-    }
-    if (swipeDirection === 'right') {
-      return { transform: 'translateX(120%) rotate(25deg)', opacity: 0, transition: 'all 0.42s cubic-bezier(0.4,0,0.2,1)' };
-    }
+    if (swipeDirection === 'left')
+      return { transform: 'translateX(-130%) rotate(-28deg)', opacity: 0, transition: 'all 0.42s cubic-bezier(0.4,0,0.2,1)' };
+    if (swipeDirection === 'right')
+      return { transform: 'translateX(130%) rotate(28deg)', opacity: 0, transition: 'all 0.42s cubic-bezier(0.4,0,0.2,1)' };
     const rotate = dragX * 0.06;
     return {
       transform: `translateX(${dragX}px) rotate(${rotate}deg)`,
@@ -115,27 +94,28 @@ function FoodSwipe({ onBack, onAddToCart }) {
     };
   };
 
-  // Overlay opacity based on drag
-  const likeOpacity = Math.min(Math.max(dragX / SWIPE_THRESHOLD, 0), 1);
+  const likeOpacity = Math.min(Math.max(dragX  / SWIPE_THRESHOLD, 0), 1);
   const skipOpacity = Math.min(Math.max(-dragX / SWIPE_THRESHOLD, 0), 1);
+  const progress    = items.length > 0 ? (currentIndex / items.length) * 100 : 0;
 
-  const progress = items.length > 0 ? ((currentIndex) / items.length) * 100 : 0;
-
+  // ── Loading ────────────────────────────────
   if (loading) {
     return (
-      <div className="swipe-screen">
+      <div className="swipe-screen" onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}>
         <div className="swipe-header">
           <button className="back-btn" onClick={onBack}>←</button>
           <div className="brand-title">Discover 🍽️</div>
           <div style={{ width: 34 }} />
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="swipe-loading-wrap">
           <div className="loader-spinner" />
+          <p style={{ color: 'var(--text-secondary)', marginTop: 16, fontSize: 14 }}>Loading menu…</p>
         </div>
       </div>
     );
   }
 
+  // ── All Done ───────────────────────────────
   if (allDone || items.length === 0) {
     return (
       <div className="swipe-screen">
@@ -162,8 +142,10 @@ function FoodSwipe({ onBack, onAddToCart }) {
     );
   }
 
+  // ── Main Swipe UI ──────────────────────────
   return (
-    <div className="swipe-screen"
+    <div
+      className="swipe-screen"
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
@@ -177,22 +159,20 @@ function FoodSwipe({ onBack, onAddToCart }) {
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress */}
       <div className="swipe-progress-track">
         <div className="swipe-progress-fill" style={{ width: `${progress}%` }} />
       </div>
       <p className="swipe-step-label">{currentIndex + 1} / {items.length}</p>
 
-      {/* Card Stack */}
+      {/* Deck */}
       <div className="swipe-deck">
-        {/* Next card peeking behind */}
         {items[currentIndex + 1] && (
           <div className="food-card food-card--back">
             <img src={items[currentIndex + 1].imageUrl} alt="" />
           </div>
         )}
 
-        {/* Current card */}
         <div
           ref={cardRef}
           className="food-card food-card--front"
@@ -202,11 +182,10 @@ function FoodSwipe({ onBack, onAddToCart }) {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          {/* LIKE overlay */}
+          {/* Stamp overlays */}
           <div className="swipe-overlay swipe-overlay--like" style={{ opacity: likeOpacity }}>
             <span>❤️ ADD</span>
           </div>
-          {/* SKIP overlay */}
           <div className="swipe-overlay swipe-overlay--skip" style={{ opacity: skipOpacity }}>
             <span>✕ SKIP</span>
           </div>
@@ -230,44 +209,20 @@ function FoodSwipe({ onBack, onAddToCart }) {
         </div>
       </div>
 
-      {/* Instructions */}
+      {/* Hint row */}
       <div className="swipe-hint">
         <span className="swipe-hint__skip">← Skip</span>
         <span className="swipe-hint__heart">❤️ Like</span>
         <span className="swipe-hint__add">Add →</span>
       </div>
 
-      {/* Floating Action Buttons */}
+      {/* FAB row */}
       <div className="swipe-fab-row">
-        <button
-          className="swipe-fab swipe-fab--skip"
-          onClick={() => commitSwipe('left')}
-          aria-label="Skip this item"
-        >
-          ✕
-        </button>
-
-        <button
-          className="swipe-fab swipe-fab--super"
-          onClick={() => {
-            setShowResult('liked');
-            commitSwipe('right');
-          }}
-          aria-label="Super like"
-        >
-          ⚡
-        </button>
-
-        <button
-          className="swipe-fab swipe-fab--like"
-          onClick={() => commitSwipe('right')}
-          aria-label="Add to cart"
-        >
-          ❤️
-        </button>
+        <button className="swipe-fab swipe-fab--skip" onClick={() => commitSwipe('left')} aria-label="Skip">✕</button>
+        <button className="swipe-fab swipe-fab--super" onClick={() => commitSwipe('right')} aria-label="Super like">⚡</button>
+        <button className="swipe-fab swipe-fab--like"  onClick={() => commitSwipe('right')} aria-label="Add to cart">❤️</button>
       </div>
 
-      {/* Result Toast */}
       {showResult && (
         <div className={`swipe-toast swipe-toast--${showResult}`}>
           {showResult === 'liked' ? '❤️ Added to Cart!' : '⏭ Skipped'}
