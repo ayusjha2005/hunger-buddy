@@ -2,14 +2,16 @@ import { useState } from 'react';
 import './LoginPage.css';
 
 function LoginPage({ onLogin }) {
-  const [step, setStep]           = useState('splash');
-  const [nameInput, setNameInput] = useState('');
+  const [step, setStep]             = useState('splash');
+  const [nameInput, setNameInput]   = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const name = nameInput.trim();
-    if (!name) return;
-    onLogin(name);
+    const phone = phoneInput.trim();
+    if (!name || phone.length < 10) return;
+    onLogin(name, phone);
   };
 
   /* ── STEP 1: Splash ─────────────────────────────────────── */
@@ -108,10 +110,25 @@ function LoginPage({ onLogin }) {
             />
           </div>
 
+          <div className="lp-field-lbl" style={{ marginTop: 20 }}>
+            <span>📞</span> Phone number
+          </div>
+          <div className="lp-input-row" style={{ paddingLeft: 6 }}>
+            <div className="lp-phone-prefix">📞 +91</div>
+            <input
+              className="lp-input"
+              type="tel"
+              placeholder="Enter your mobile number"
+              value={phoneInput}
+              onChange={e => setPhoneInput(e.target.value.replace(/\D/g, ''))}
+              maxLength={10}
+            />
+          </div>
+
           <button
             className="lp-btn-primary lp-btn-continue"
             type="submit"
-            disabled={!nameInput.trim()}
+            disabled={!nameInput.trim() || phoneInput.length < 10}
           >
             Continue
             <span className="lp-arrow-circle">›</span>
