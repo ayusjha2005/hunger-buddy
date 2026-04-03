@@ -254,8 +254,8 @@ function App() {
         <div className="order-success-overlay" onClick={dismissOrder}>
           <div className="order-success-card" onClick={e => e.stopPropagation()}>
             <div className="order-success-icon">🎉</div>
-            <h2 className="order-success-title">Order Placed!</h2>
-            <p className="order-success-sub">Your order is confirmed, {userName}. Estimated wait:</p>
+            <h2 className="order-success-title">Thank you for ordering, {userName}!</h2>
+            <p className="order-success-sub">Order is confirmed. Estimated wait time:</p>
             <div className="order-wait-badge">
               <span className="order-wait-time">{orderResult.waitTime}</span>
               <span className="order-wait-label">mins</span>
