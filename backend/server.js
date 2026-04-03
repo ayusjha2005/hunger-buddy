@@ -7,20 +7,10 @@ require('dotenv').config();
 
 const app = express();
 
-// ── CORS: allow local dev + deployed frontend ──────────────────
-const ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    process.env.FRONTEND_URL,   // set on Render: e.g. https://hunger-buddy.vercel.app
-].filter(Boolean);
+const cors = require("cors");
 
 app.use(cors({
-    origin: (origin, cb) => {
-        // allow requests with no origin (Postman, curl, etc.)
-        if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-        cb(new Error('Not allowed by CORS'));
-    },
-    credentials: true
+  origin: "*",
 }));
 app.use(express.json());
 
