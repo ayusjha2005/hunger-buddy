@@ -272,8 +272,8 @@ function App() {
             </svg>
           </div>
           
-          <h2 className="welcome-text">Welcome!</h2>
-          <p className="welcome-sub">Let's get you started<br/>with something delicious 💚</p>
+          <h2 className="welcome-text">Hello VITian! 🎓</h2>
+          <p className="welcome-sub">Enter your name to start ordering 😊</p>
         </div>
 
         <div className="login-bottom-sheet">
