@@ -146,7 +146,7 @@ function App() {
       body: JSON.stringify({ outletId: selectedOutlet._id, targetName: searchQuery.trim() })
     })
       .then(r => r.json())
-      .then(data => { setMenu(data ? [data] : []); setSearchLoading(false); })
+      .then(data => { setMenu(Array.isArray(data) ? data : (data ? [data] : [])); setSearchLoading(false); })
       .catch(() => { showError('Search failed.'); setSearchLoading(false); });
   }, [selectedOutlet, searchQuery, sortMenu]);
 

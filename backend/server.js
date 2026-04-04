@@ -74,10 +74,11 @@ function jsFallback(action, payload) {
         return { result: arr };
     }
     if (action === 'search') {
-        const found = payload.menu.find(
-            item => item.name.toLowerCase() === payload.targetName.toLowerCase()
+        const q = payload.targetName.toLowerCase();
+        const found = payload.menu.filter(
+            item => item.name.toLowerCase().includes(q)
         );
-        return { result: found || null };
+        return { result: found };
     }
     if (action === 'add_cart') {
         return { result: [...payload.cart, payload.newItem] };
@@ -132,7 +133,9 @@ app.post('/api/menu/search', async (req, res) => {
         const { outletId, targetName } = req.body;
         const menu = await MenuItem.find({ outletId }).lean();
         const result = await runEngine('search', { menu, targetName });
-        res.json(result.result);
+        // result.result is now always an array
+        const arr = Array.isArray(result.result) ? result.result : (result.result ? [result.result] : []);
+        res.json(arr);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
