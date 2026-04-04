@@ -1,230 +1,404 @@
+/* ============================================================
+   SPIN WHEEL BANNER — Animated Glowing Wheel
+   ============================================================ */
+
+/* ── Banner container ────────────────────────────────────── */
 .spin-banner {
   background: linear-gradient(145deg, #fff0f5 0%, #ffe4ec 100%);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 24px;
+  padding: 22px 18px 22px 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(255,77,109,0.15);
-  margin-bottom: 24px;
-  border: 1px solid rgba(255,133,162,0.2);
+  border: 1.5px solid rgba(255,77,109,0.14);
+  box-shadow:
+    0 8px 32px rgba(255,77,109,0.12),
+    0 2px 8px rgba(0,0,0,0.04);
+  margin: 0 20px 20px;
+  transition: box-shadow 0.4s ease;
+}
+.spin-banner--active {
+  box-shadow:
+    0 12px 48px rgba(255,77,109,0.3),
+    0 0 80px rgba(255,77,109,0.15);
 }
 
-.spin-confetti {
+/* Dark mode */
+[data-theme="dark"] .spin-banner {
+  background: rgba(22, 14, 28, 0.92);
+  border-color: rgba(255,77,141,0.22);
+}
+[data-theme="dark"] .spin-banner--active {
+  box-shadow:
+    0 12px 48px rgba(255,77,141,0.4),
+    0 0 100px rgba(255,77,141,0.25);
+}
+
+/* ── Animated glow blobs ─────────────────────────────────── */
+.swb-glow {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  opacity: 0.5;
-  transform: rotate(45deg);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+  opacity: 0;
+  animation: swbGlowPulse 4s ease-in-out infinite;
 }
-.c1 { top: 15%; left: 30%; background: #ff85a2; border-radius: 50%; }
-.c2 { bottom: 20%; right: 40%; background: #ffb3c6; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+.swb-glow1 {
+  width: 140px; height: 140px;
+  background: rgba(255,77,109,0.35);
+  top: -30px; right: 40px;
+  animation-delay: 0s;
+}
+.swb-glow2 {
+  width: 100px; height: 100px;
+  background: rgba(179,78,255,0.3);
+  bottom: -20px; right: 100px;
+  animation-delay: 2s;
+}
+@keyframes swbGlowPulse {
+  0%, 100% { opacity: 0; transform: scale(0.9); }
+  50%       { opacity: 1; transform: scale(1.1); }
+}
 
+/* ── Left text ───────────────────────────────────────────── */
 .spin-banner-left {
   flex: 1;
   position: relative;
   z-index: 2;
+  padding-right: 8px;
 }
 
 .spin-badge {
   display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
   color: #ff4d6d;
-  background: rgba(255,77,109,0.12);
-  padding: 4px 8px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  letter-spacing: 1px;
+  background: rgba(255,77,109,0.1);
+  padding: 4px 9px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 1.2px;
+  border: 1px solid rgba(255,77,109,0.2);
 }
+[data-theme="dark"] .spin-badge { color: #ff7aa2; background: rgba(255,77,141,0.15); }
 
 .spin-banner-title {
-  color: #1a1a2e;
-  font-size: 24px;
+  color: var(--text-primary);
+  font-size: 20px;
   font-weight: 800;
-  margin-bottom: 8px;
-  line-height: 1.2;
+  margin-bottom: 7px;
+  line-height: 1.15;
 }
-.spin-banner-title span {
-  color: #ff4d6d;
-}
+.spin-banner-title span { color: #ff4d6d; }
+[data-theme="dark"] .spin-banner-title span { color: #ff7aa2; }
 
 .spin-banner-subtitle {
-  color: rgba(26,26,46,0.6);
-  font-size: 12px;
-  line-height: 1.4;
-  margin-bottom: 16px;
-  max-width: 180px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+  margin-bottom: 14px;
+  max-width: 165px;
 }
 
+/* ── Spin button ─────────────────────────────────────────── */
 .spin-btn {
-  background: linear-gradient(90deg, #ff4d6d, #ff85a2);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #ff4d6d 0%, #ff85a2 100%);
   border: none;
-  border-radius: 20px;
-  padding: 10px 20px;
+  border-radius: 50px;
+  padding: 10px 18px;
   color: #fff;
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 6px 20px rgba(255,77,109,0.3);
+  box-shadow: 0 6px 22px rgba(255,77,109,0.4);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+.spin-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+  background-size: 300% 100%;
+  animation: btnShimmer 2.5s ease-in-out infinite;
+  border-radius: inherit;
+}
+@keyframes btnShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 .spin-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(255,77,109,0.4);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 32px rgba(255,77,109,0.55);
 }
-.spin-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.spin-btn:active:not(:disabled) { transform: scale(0.95); }
+.spin-btn:disabled { opacity: 0.75; cursor: not-allowed; }
+.spin-btn--spinning { animation: spinBtnPulse 1s ease-in-out infinite; }
+@keyframes spinBtnPulse {
+  0%, 100% { box-shadow: 0 6px 22px rgba(255,77,109,0.4); }
+  50%       { box-shadow: 0 6px 36px rgba(255,77,109,0.7); }
 }
+.spin-btn-icon { font-size: 15px; }
+.spin-btn-arrow { font-size: 16px; font-weight: 900; margin-left: 2px; }
 
+/* ── Right wheel container ───────────────────────────────── */
 .spin-banner-right {
   position: relative;
   z-index: 2;
-  margin-left: 10px;
+  flex-shrink: 0;
 }
 
 .wheel-wrapper {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 148px;
+  height: 148px;
 }
 
-.wheel {
-  width: 100%;
-  height: 100%;
+/* Ring glow around wheel */
+.wheel-ring-glow {
+  position: absolute;
+  inset: -8px;
   border-radius: 50%;
-  border: 4px solid #fff;
-  transform-style: preserve-3d;
-  will-change: transform;
-  transition: transform 4s cubic-bezier(0.1, 1, 0.2, 1);
-  box-shadow: 0 0 24px rgba(255,77,109,0.25), inset 0 0 10px rgba(0,0,0,0.1);
+  background: conic-gradient(#ff4d6d, #b34eff, #00b8ff, #4cde78, #ff9500, #ff4d6d);
+  opacity: 0.35;
+  filter: blur(8px);
+  animation: ringRotate 4s linear infinite;
+  z-index: -1;
+}
+@keyframes ringRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.wheel-wrapper--glow .wheel-ring-glow {
+  opacity: 0.8;
+  filter: blur(12px);
 }
 
-.wheel-pointer {
+/* ── The Wheel ───────────────────────────────────────────── */
+.wheel {
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  will-change: transform;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.8),
+    0 8px 32px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .wheel {
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 0 0 2px rgba(255,77,141,0.4), 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* ── Divider lines ───────────────────────────────────────── */
+.wheel-divider {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
-  background: #fff;
-  border-radius: 50%;
-  border: 3px solid #ff4d6d;
-  z-index: 3;
-  box-shadow: 0 2px 8px rgba(255,77,109,0.3);
+  width: 50%;
+  height: 1.5px;
+  background: rgba(255,255,255,0.6);
+  transform-origin: left center;
+  pointer-events: none;
 }
 
+/* ── Slice labels ────────────────────────────────────────── */
 .wheel-text {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 50px;
+  width: 50%;
   height: 50%;
-  transform-origin: bottom center;
-  margin-left: -25px;
+  transform-origin: bottom left;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   padding-top: 10px;
   pointer-events: none;
+  /* Rotate text back so it reads radially from center outward */
+  gap: 2px;
 }
-
+.wheel-emoji {
+  font-size: 13px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
 .wheel-label {
-  font-size: 8px;
-  font-weight: 800;
+  font-size: 7px;
+  font-weight: 900;
   color: #fff;
   text-align: center;
   line-height: 1.1;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  letter-spacing: 0.5px;
 }
 
-.wheel-pointer::after {
-  content: '';
+/* ── Centre hub ──────────────────────────────────────────── */
+.wheel-hub {
   position: absolute;
-  top: -14px;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 50%;
+  border: 2px solid rgba(255,77,109,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(255,77,109,0.25);
+}
+[data-theme="dark"] .wheel-hub {
+  background: #1e1e2e;
+  border-color: rgba(255,77,141,0.4);
+}
+
+/* ── Pointer triangle (pointing down into wheel from top) ─── */
+.wheel-pointer {
+  position: absolute;
+  top: -2px;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 0 8px 14px;
-  border-style: solid;
-  border-color: transparent transparent #ff4d6d;
-  filter: drop-shadow(0 -2px 2px rgba(255,77,109,0.3));
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 18px solid #ff4d6d;
+  z-index: 15;
+  filter: drop-shadow(0 2px 4px rgba(255,77,109,0.6));
+  animation: pointerBounce 1.2s ease-in-out infinite;
 }
+@keyframes pointerBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(-3px); }
+}
+[data-theme="dark"] .wheel-pointer { border-top-color: #ff4d8d; }
 
+/* ── Floating sparkles ───────────────────────────────────── */
 .sc-food {
   position: absolute;
-  font-size: 28px;
+  font-size: 18px;
   z-index: 4;
-  filter: drop-shadow(0 4px 8px rgba(255,77,109,0.3));
+  animation: sparkleFloat 2.5s ease-in-out infinite alternate;
 }
-.sc-food-1 { bottom: -10px; left: -20px; transform: rotate(-15deg); }
-.sc-food-2 { bottom: 10px; right: -25px; transform: rotate(20deg); font-size: 24px; }
+.sc-food-1 { bottom: -6px; left: -14px; animation-delay: 0s; }
+.sc-food-2 { top: -4px;   right: -16px; animation-delay: 1.2s; font-size: 14px; }
+@keyframes sparkleFloat {
+  from { transform: translateY(0) rotate(-10deg); }
+  to   { transform: translateY(-8px) rotate(10deg); }
+}
 
-/* ── REWARD OVERLAY ─────────────────────────── */
+/* ── Result overlay ──────────────────────────────────────── */
 .reward-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(255,240,245,0.85);
+  background: rgba(255,240,245,0.82);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  backdrop-filter: blur(10px);
-  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(12px);
+  animation: overlayIn 0.3s ease;
 }
+[data-theme="dark"] .reward-overlay {
+  background: rgba(12, 8, 18, 0.88);
+}
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
 .reward-card {
-  background: rgba(255,255,255,0.96);
-  border: 1px solid rgba(255,133,162,0.25);
+  background: rgba(255,255,255,0.97);
+  border: 1.5px solid rgba(255,133,162,0.2);
   border-radius: 28px;
-  padding: 40px 30px;
+  padding: 38px 28px 32px;
   text-align: center;
   width: 320px;
   max-width: calc(100vw - 40px);
-  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow: 0 20px 60px rgba(255,77,109,0.2);
+  animation: cardPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 24px 70px rgba(255,77,109,0.22);
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="dark"] .reward-card {
+  background: rgba(20, 14, 28, 0.98);
+  border-color: rgba(255,77,141,0.25);
+  box-shadow: 0 24px 70px rgba(255,77,141,0.3);
+}
+@keyframes cardPop {
+  from { transform: scale(0.7) rotate(-4deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* Confetti inside card */
+.rw-confetti {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  top: 0;
+  animation: confettiDrop linear forwards;
+}
+@keyframes confettiDrop {
+  from { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(100%) rotate(360deg); opacity: 0; }
 }
 
 .reward-icon {
-  font-size: 56px;
-  margin-bottom: 10px;
-  animation: bounce 2s infinite;
+  font-size: 60px;
+  margin-bottom: 8px;
+  animation: iconBounce 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+  display: block;
+}
+@keyframes iconBounce {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
 }
 
 .reward-title {
-  color: #1a1a2e;
-  font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 8px;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 12px;
 }
-
 .reward-prize {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 900;
   margin-bottom: 12px;
-  padding: 8px 16px;
-  background: rgba(255,77,109,0.06);
-  border-radius: 12px;
+  padding: 10px 18px;
+  border-radius: 14px;
   display: inline-block;
+  border: 2px solid;
+  letter-spacing: 1px;
+  background: rgba(255,255,255,0.5);
 }
-
 .reward-subtitle {
-  color: rgba(26,26,46,0.55);
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 24px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+  margin-bottom: 22px;
 }
 
+/* Reward action button */
 .reward-btn {
-  background: linear-gradient(135deg, #ff4d6d 0%, #ff85a2 100%);
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(255,77,109,0.35);
+  background: linear-gradient(135deg, #ff4d6d, #ff85a2) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 28px rgba(255,77,109,0.4) !important;
+  width: 100%;
+  font-size: 16px !important;
+  padding: 15px !important;
+  border-radius: 50px !important;
+  border: none !important;
+  cursor: pointer;
+  font-weight: 800 !important;
 }
-
-@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn   { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes bounce  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.reward-btn:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 12px 36px rgba(255,77,109,0.55) !important;
+}
