@@ -887,21 +887,9 @@ body::-webkit-scrollbar { display: none; }
 @keyframes toastPop     { from { opacity: 0; transform: translateX(-50%) scale(0.7); }
                           to   { opacity: 1; transform: translateX(-50%) scale(1); } }
 
-/* ============================================================
-   FOOD SWIPE (TINDER) SCREEN
-   ============================================================ */
-.swipe-screen {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg-main);
-  display: flex;
-  flex-direction: column;
-  z-index: 500;
-  user-select: none;
-  overflow: hidden;
-}
+
+/* Swipe styles moved to FoodSwipe.css */
+
 
 /* On desktop, the swipe screen is limited to the phone column */
 @media (min-width: 900px) {

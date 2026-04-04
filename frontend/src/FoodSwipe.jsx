@@ -1,233 +1,326 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, useMotionValue, useTransform, useAnimation, AnimatePresence } from 'framer-motion';
+import './FoodSwipe.css';
 
-const SWIPE_THRESHOLD = 80;
+const SWIPE_THRESHOLD = 100;
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-function FoodSwipe({ onBack, onAddToCart }) {
-  const [items, setItems]               = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState(null);
-  const [isDragging, setIsDragging]     = useState(false);
-  const [dragX, setDragX]               = useState(0);
-  const [likedItems, setLikedItems]     = useState([]);
-  const [showResult, setShowResult]     = useState(null);
-  const [allDone, setAllDone]           = useState(false);
-  const [loading, setLoading]           = useState(true);
+// ── Skeleton card shimmer ─────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="fs-skeleton">
+      <div className="fs-skel-img shimmer" />
+      <div className="fs-skel-body">
+        <div className="fs-skel-tag shimmer" />
+        <div className="fs-skel-title shimmer" />
+        <div className="fs-skel-desc shimmer" />
+      </div>
+    </div>
+  );
+}
 
-  const dragStartX = useRef(0);
-  const cardRef    = useRef(null);
+// ── Single swipeable card ─────────────────────────────────
+function SwipeCard({ item, onSwipeLeft, onSwipeRight, isTop, stackIndex }) {
+  const x        = useMotionValue(0);
+  const rotate   = useTransform(x, [-300, 0, 300], [-25, 0, 25]);
+  const likeOp   = useTransform(x, [10, 120], [0, 1]);
+  const nopeOp   = useTransform(x, [-120, -10], [1, 0]);
+  const controls = useAnimation();
+  const isDragging = useRef(false);
+
+  const handleDragEnd = useCallback(async (_, info) => {
+    const velocity = info.velocity.x;
+    const offset   = info.offset.x;
+
+    if (offset > SWIPE_THRESHOLD || velocity > 600) {
+      await controls.start({
+        x: 600, rotate: 30, opacity: 0,
+        transition: { duration: 0.35, ease: [0.2, 1, 0.4, 1] }
+      });
+      onSwipeRight();
+    } else if (offset < -SWIPE_THRESHOLD || velocity < -600) {
+      await controls.start({
+        x: -600, rotate: -30, opacity: 0,
+        transition: { duration: 0.35, ease: [0.2, 1, 0.4, 1] }
+      });
+      onSwipeLeft();
+    } else {
+      controls.start({
+        x: 0, rotate: 0,
+        transition: { type: 'spring', stiffness: 300, damping: 25 }
+      });
+    }
+  }, [controls, onSwipeLeft, onSwipeRight]);
+
+  // Programmatic swipe (from buttons)
+  useEffect(() => {
+    if (item?._swipeLeft) {
+      controls.start({ x: -600, rotate: -30, opacity: 0, transition: { duration: 0.35 } }).then(onSwipeLeft);
+    }
+    if (item?._swipeRight) {
+      controls.start({ x: 600, rotate: 30, opacity: 0, transition: { duration: 0.35 } }).then(onSwipeRight);
+    }
+  }, [item?._swipeLeft, item?._swipeRight]);
+
+  const scale = stackIndex === 0 ? 1 : stackIndex === 1 ? 0.95 : 0.9;
+  const yOffset = stackIndex === 0 ? 0 : stackIndex === 1 ? 14 : 26;
+
+  if (!isTop) {
+    return (
+      <motion.div
+        className="fs-card fs-card--back"
+        animate={{ scale, y: yOffset }}
+        transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+        style={{ zIndex: 10 - stackIndex }}
+      >
+        <img src={item.imageUrl} alt="" draggable={false} />
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="fs-card fs-card--top"
+      style={{ x, rotate, zIndex: 20 }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.9}
+      onDragStart={() => { isDragging.current = true; }}
+      onDragEnd={handleDragEnd}
+      animate={controls}
+      initial={{ scale: 0.85, opacity: 0, y: 60 }}
+      whileInView={{ scale: 1, opacity: 1, y: 0, transition: { type: 'spring', stiffness: 220, damping: 22 } }}
+      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+    >
+      {/* LIKE stamp */}
+      <motion.div className="fs-stamp fs-stamp--like" style={{ opacity: likeOp }}>
+        <span>LIKE</span>
+      </motion.div>
+      {/* NOPE stamp */}
+      <motion.div className="fs-stamp fs-stamp--nope" style={{ opacity: nopeOp }}>
+        <span>NOPE</span>
+      </motion.div>
+
+      {/* Full-image background */}
+      <div className="fs-card__img-wrap">
+        <img src={item.imageUrl} alt={item.name} draggable={false} />
+        <div className="fs-card__gradient" />
+      </div>
+
+      {/* Info body */}
+      <div className="fs-card__body">
+        <div className="fs-card__outlet">{item.outletName}</div>
+        <h2 className="fs-card__name">{item.name}</h2>
+        <p className="fs-card__desc">{item.description}</p>
+        <div className="fs-card__footer">
+          <span className="fs-card__price">₹{item.price}</span>
+          <span className={`fs-card__cat fs-cat--${(item.category || '').toLowerCase().replace(/[^a-z]/g, '')}`}>
+            {item.category === 'Veg' ? '🟢' : item.category === 'Non-Veg' ? '🔴' : '⚪'} {item.category}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Main FoodSwipe Component ──────────────────────────────
+function FoodSwipe({ onBack, onAddToCart }) {
+  const [items, setItems]           = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [likedItems, setLikedItems] = useState([]);
+  const [allDone, setAllDone]       = useState(false);
+  const [loading, setLoading]       = useState(true);
+  const [btnAnim, setBtnAnim]       = useState(null); // 'like' | 'nope'
 
   useEffect(() => {
     fetch(`${API}/outlets`)
       .then(r => r.json())
-      .then(outlets => {
-        const fetches = outlets.map(o =>
+      .then(outlets => Promise.all(
+        outlets.map(o =>
           fetch(`${API}/menu/${o._id}`)
             .then(r => r.json())
             .then(items => items.map(item => ({ ...item, outletName: o.name })))
-        );
-        return Promise.all(fetches);
-      })
+        )
+      ))
       .then(allMenus => {
-        const flat = allMenus.flat();
-        const shuffled = flat.sort(() => Math.random() - 0.5);
-        setItems(shuffled);
+        const flat = allMenus.flat().sort(() => Math.random() - 0.5);
+        setItems(flat);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  const currentItem = items[currentIndex];
+  const advance = useCallback(() => {
+    const next = currentIndex + 1;
+    if (next >= items.length) setAllDone(true);
+    else setCurrentIndex(next);
+  }, [currentIndex, items.length]);
 
-  const commitSwipe = (direction) => {
-    setSwipeDirection(direction);
-    setShowResult(direction === 'right' ? 'liked' : 'skipped');
-
-    if (direction === 'right' && currentItem) {
-      setLikedItems(prev => [...prev, currentItem]);
+  const handleSwipeRight = useCallback(() => {
+    const item = items[currentIndex];
+    if (item) {
+      setLikedItems(prev => [...prev, item]);
+      if (onAddToCart) onAddToCart(item);
       fetch(`${API}/cart/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart: [], newItem: currentItem })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart: [], newItem: item })
       }).catch(() => {});
-      if (onAddToCart) onAddToCart(currentItem);
     }
+    advance();
+  }, [items, currentIndex, onAddToCart, advance]);
 
-    setTimeout(() => {
-      setSwipeDirection(null);
-      setDragX(0);
-      setShowResult(null);
-      const next = currentIndex + 1;
-      if (next >= items.length) setAllDone(true);
-      else setCurrentIndex(next);
-    }, 420);
+  const handleSwipeLeft = useCallback(() => {
+    advance();
+  }, [advance]);
+
+  const triggerBtn = (dir) => {
+    setBtnAnim(dir);
+    setTimeout(() => setBtnAnim(null), 350);
+    if (dir === 'like') handleSwipeRight();
+    else handleSwipeLeft();
   };
 
-  const onDragStart = (clientX) => { dragStartX.current = clientX; setIsDragging(true); };
-  const onDragMove  = (clientX) => { if (!isDragging) return; setDragX(clientX - dragStartX.current); };
-  const onDragEnd   = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (dragX >  SWIPE_THRESHOLD) commitSwipe('right');
-    else if (dragX < -SWIPE_THRESHOLD) commitSwipe('left');
-    else setDragX(0);
-  };
+  const progress = items.length > 0 ? (currentIndex / items.length) * 100 : 0;
 
-  const onMouseDown = (e) => onDragStart(e.clientX);
-  const onMouseMove = (e) => { if (isDragging) onDragMove(e.clientX); };
-  const onMouseUp   = ()  => onDragEnd();
-
-  const onTouchStart = (e) => onDragStart(e.touches[0].clientX);
-  const onTouchMove  = (e) => onDragMove(e.touches[0].clientX);
-  const onTouchEnd   = ()  => onDragEnd();
-
-  const getCardStyle = () => {
-    if (swipeDirection === 'left')
-      return { transform: 'translateX(-130%) rotate(-28deg)', opacity: 0, transition: 'all 0.42s cubic-bezier(0.4,0,0.2,1)' };
-    if (swipeDirection === 'right')
-      return { transform: 'translateX(130%) rotate(28deg)', opacity: 0, transition: 'all 0.42s cubic-bezier(0.4,0,0.2,1)' };
-    const rotate = dragX * 0.06;
-    return {
-      transform: `translateX(${dragX}px) rotate(${rotate}deg)`,
-      transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-      cursor: isDragging ? 'grabbing' : 'grab',
-    };
-  };
-
-  const likeOpacity = Math.min(Math.max(dragX  / SWIPE_THRESHOLD, 0), 1);
-  const skipOpacity = Math.min(Math.max(-dragX / SWIPE_THRESHOLD, 0), 1);
-  const progress    = items.length > 0 ? (currentIndex / items.length) * 100 : 0;
-
-  // ── Loading ────────────────────────────────
+  // ── Loading ──────────────────────────────────────────
   if (loading) {
     return (
-      <div className="swipe-screen" onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}>
-        <div className="swipe-header">
-          <button className="back-btn" onClick={onBack}>←</button>
-          <div className="brand-title">Discover 🍽️</div>
+      <div className="fs-screen">
+        <div className="fs-header">
+          <button className="fs-back-btn" onClick={onBack}>←</button>
+          <div className="fs-title">Discover 🍽️</div>
           <div style={{ width: 34 }} />
         </div>
-        <div className="swipe-loading-wrap">
-          <div className="loader-spinner" />
-          <p style={{ color: 'var(--text-secondary)', marginTop: 16, fontSize: 14 }}>Loading menu…</p>
+        <div className="fs-deck">
+          <SkeletonCard />
         </div>
       </div>
     );
   }
 
-  // ── All Done ───────────────────────────────
+  // ── All Done ─────────────────────────────────────────
   if (allDone || items.length === 0) {
     return (
-      <div className="swipe-screen">
-        <div className="swipe-header">
-          <button className="back-btn" onClick={onBack}>←</button>
-          <div className="brand-title">Discover 🍽️</div>
+      <div className="fs-screen">
+        <div className="fs-header">
+          <button className="fs-back-btn" onClick={onBack}>←</button>
+          <div className="fs-title">Discover 🍽️</div>
           <div style={{ width: 34 }} />
         </div>
-        <div className="swipe-done-screen">
-          <div className="swipe-done-emoji">🎉</div>
+        <motion.div
+          className="fs-done"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+        >
+          <div className="fs-done__emoji">🎉</div>
           <h2>You've seen it all!</h2>
           <p>{likedItems.length} item{likedItems.length !== 1 ? 's' : ''} added to cart</p>
-          <div className="liked-summary">
+          <div className="fs-liked-list">
             {likedItems.map((item, i) => (
-              <div key={i} className="liked-chip">
+              <motion.div
+                key={i}
+                className="fs-liked-chip"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
                 <img src={item.imageUrl} alt={item.name} />
                 <span>{item.name}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
-          <button className="btn-large" style={{ marginTop: 20 }} onClick={onBack}>Back to Home</button>
-        </div>
+          <button className="fs-cta-btn" onClick={onBack}>Back to Home</button>
+        </motion.div>
       </div>
     );
   }
 
-  // ── Main Swipe UI ──────────────────────────
+  // ── Main UI ───────────────────────────────────────────
+  const visibleCards = [0, 1, 2].map(offset => ({
+    item: items[currentIndex + offset],
+    stackIndex: offset,
+  })).filter(c => c.item);
+
   return (
-    <div
-      className="swipe-screen"
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-    >
+    <div className="fs-screen">
       {/* Header */}
-      <div className="swipe-header">
-        <button className="back-btn" onClick={onBack}>←</button>
-        <div className="brand-title">Discover 🍽️</div>
-        <div className="swipe-cart-count">
+      <div className="fs-header">
+        <button className="fs-back-btn" onClick={onBack}>←</button>
+        <div className="fs-title">Discover 🍽️</div>
+        <motion.div
+          className="fs-cart-badge"
+          animate={likedItems.length > 0 ? { scale: [1, 1.3, 1] } : {}}
+          transition={{ duration: 0.3 }}
+        >
           🛒 <span>{likedItems.length}</span>
-        </div>
+        </motion.div>
       </div>
 
       {/* Progress */}
-      <div className="swipe-progress-track">
-        <div className="swipe-progress-fill" style={{ width: `${progress}%` }} />
+      <div className="fs-progress-track">
+        <motion.div
+          className="fs-progress-fill"
+          animate={{ width: `${progress}%` }}
+          transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+        />
       </div>
-      <p className="swipe-step-label">{currentIndex + 1} / {items.length}</p>
+      <p className="fs-step-label">{currentIndex + 1} / {items.length}</p>
 
-      {/* Deck */}
-      <div className="swipe-deck">
-        {items[currentIndex + 1] && (
-          <div className="food-card food-card--back">
-            <img src={items[currentIndex + 1].imageUrl} alt="" />
-          </div>
-        )}
+      {/* Card Stack */}
+      <div className="fs-deck">
+        <AnimatePresence>
+          {[...visibleCards].reverse().map(({ item, stackIndex }) => (
+            <SwipeCard
+              key={`${currentIndex + stackIndex}-${item._id}`}
+              item={item}
+              isTop={stackIndex === 0}
+              stackIndex={stackIndex}
+              onSwipeRight={handleSwipeRight}
+              onSwipeLeft={handleSwipeLeft}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
 
-        <div
-          ref={cardRef}
-          className="food-card food-card--front"
-          style={getCardStyle()}
-          onMouseDown={onMouseDown}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
+      {/* Hint */}
+      <div className="fs-hints">
+        <span className="fs-hint--nope">← NOPE</span>
+        <span className="fs-hint--like">LIKE →</span>
+      </div>
+
+      {/* Action buttons */}
+      <div className="fs-fab-row">
+        <motion.button
+          className="fs-fab fs-fab--nope"
+          onClick={() => triggerBtn('nope')}
+          animate={btnAnim === 'nope' ? { scale: [1, 0.8, 1.15, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          aria-label="Skip"
         >
-          {/* Stamp overlays */}
-          <div className="swipe-overlay swipe-overlay--like" style={{ opacity: likeOpacity }}>
-            <span>❤️ ADD</span>
-          </div>
-          <div className="swipe-overlay swipe-overlay--skip" style={{ opacity: skipOpacity }}>
-            <span>✕ SKIP</span>
-          </div>
+          ✕
+        </motion.button>
 
-          <div className="food-card__image-wrap">
-            <img src={currentItem.imageUrl} alt={currentItem.name} draggable={false} />
-            <div className="food-card__gradient" />
-          </div>
+        <motion.button
+          className="fs-fab fs-fab--super"
+          onClick={() => triggerBtn('like')}
+          animate={btnAnim === 'like' || btnAnim === 'super' ? { scale: [1, 0.8, 1.2, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          aria-label="Super like"
+        >
+          ⚡
+        </motion.button>
 
-          <div className="food-card__body">
-            <div className="food-card__outlet-tag">{currentItem.outletName}</div>
-            <h2 className="food-card__name">{currentItem.name}</h2>
-            <p className="food-card__desc">{currentItem.description}</p>
-            <div className="food-card__footer">
-              <span className="food-card__price">₹{currentItem.price}</span>
-              <span className={`food-card__cat food-card__cat--${(currentItem.category || '').toLowerCase()}`}>
-                {currentItem.category === 'Veg' ? '🟢' : currentItem.category === 'Non-Veg' ? '🔴' : '⚪'} {currentItem.category}
-              </span>
-            </div>
-          </div>
-        </div>
+        <motion.button
+          className="fs-fab fs-fab--like"
+          onClick={() => triggerBtn('like')}
+          animate={btnAnim === 'like' ? { scale: [1, 0.8, 1.2, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          aria-label="Add to cart"
+        >
+          ❤️
+        </motion.button>
       </div>
-
-      {/* Hint row */}
-      <div className="swipe-hint">
-        <span className="swipe-hint__skip">← Skip</span>
-        <span className="swipe-hint__heart">❤️ Like</span>
-        <span className="swipe-hint__add">Add →</span>
-      </div>
-
-      {/* FAB row */}
-      <div className="swipe-fab-row">
-        <button className="swipe-fab swipe-fab--skip" onClick={() => commitSwipe('left')} aria-label="Skip">✕</button>
-        <button className="swipe-fab swipe-fab--super" onClick={() => commitSwipe('right')} aria-label="Super like">⚡</button>
-        <button className="swipe-fab swipe-fab--like"  onClick={() => commitSwipe('right')} aria-label="Add to cart">❤️</button>
-      </div>
-
-      {showResult && (
-        <div className={`swipe-toast swipe-toast--${showResult}`}>
-          {showResult === 'liked' ? '❤️ Added to Cart!' : '⏭ Skipped'}
-        </div>
-      )}
     </div>
   );
 }
