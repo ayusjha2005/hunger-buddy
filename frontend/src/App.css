@@ -1,19 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================================
-   DESIGN TOKENS
+   DESIGN TOKENS — Pink / White Premium Theme
    ============================================================ */
 :root {
-  --bg-main:           #181920;
-  --bg-card:           #252836;
-  --bg-card-hover:     #2c2f45;
-  --text-primary:      #FFFFFF;
-  --text-secondary:    #ABABC5;
-  --accent-green:      #00D364;
-  --accent-green-hover:#00B155;
-  --border-subtle:     #313442;
-  --danger:            #FF4B4B;
-  --app-max-width:     480px;   /* phone column width */
+  --bg-main:           #fff5f7;
+  --bg-card:           rgba(255,255,255,0.92);
+  --bg-card-hover:     rgba(255,255,255,1);
+  --text-primary:      #1a1a2e;
+  --text-secondary:    #7a7a9a;
+  --accent-green:      #ff4d6d;
+  --accent-green-hover:#e63359;
+  --border-subtle:     rgba(255,77,109,0.14);
+  --danger:            #ff3b30;
+  --app-max-width:     480px;
+  --pink-glow:         rgba(255,77,109,0.22);
+  --pink-light:        #ff85a2;
 }
 
 /* ============================================================
@@ -25,12 +27,13 @@
   font-family: 'Poppins', sans-serif;
 }
 body {
-  background-color: #0e0f14;   /* darker gutter for desktop */
+  background: linear-gradient(135deg, #ffe4ec 0%, #fff0f5 50%, #fce4ec 100%);
   color: var(--text-primary);
   min-height: 100vh;
   scrollbar-width: none;
 }
 body::-webkit-scrollbar { display: none; }
+
 
 /* ============================================================
    DESKTOP SHELL — centers the phone column on wide screens
@@ -43,8 +46,7 @@ body::-webkit-scrollbar { display: none; }
   position: relative;
   background-color: var(--bg-main);
   padding-bottom: 80px;
-  /* subtle side borders so it "floats" on desktop */
-  box-shadow: 0 0 60px rgba(0,0,0,0.7);
+  box-shadow: 0 0 80px rgba(255,77,109,0.18), 0 0 0 1px rgba(255,77,109,0.06);
 }
 
 /* ============================================================
@@ -52,8 +54,7 @@ body::-webkit-scrollbar { display: none; }
    ============================================================ */
 @media (min-width: 900px) {
   body {
-    /* nice gradient gutter */
-    background: radial-gradient(ellipse at 30% 50%, #1a1f38 0%, #0e0f14 60%);
+    background: linear-gradient(135deg, #ffd6e0 0%, #ffe4ec 40%, #fce4ec 100%);
   }
 
   .foodies-container {
@@ -61,7 +62,6 @@ body::-webkit-scrollbar { display: none; }
     min-height: 100vh;
   }
 
-  /* On very wide screens add a subtle desktop sidebar hint */
   body::before {
     content: '🍔 HungerBuddy';
     position: fixed;
@@ -69,7 +69,7 @@ body::-webkit-scrollbar { display: none; }
     top: 40px;
     font-size: 13px;
     font-weight: 600;
-    color: rgba(255,255,255,0.07);
+    color: rgba(255,77,109,0.18);
     letter-spacing: 2px;
     transform: translateX(-100%) translateX(-20px);
     pointer-events: none;
@@ -147,7 +147,7 @@ body::-webkit-scrollbar { display: none; }
   align-items: center;
   justify-content: center;
   padding: 24px 20px;
-  background: radial-gradient(ellipse at 50% 30%, #1e2a45 0%, #181920 65%);
+  background: linear-gradient(162deg, #fff0f5 0%, #ffe4ec 100%);
   position: relative;
   overflow: hidden;
 }
@@ -298,9 +298,10 @@ body::-webkit-scrollbar { display: none; }
   padding: 18px 20px 12px;
   position: sticky;
   top: 0;
-  background: rgba(24,25,32,0.95);
+  background: rgba(255,245,247,0.92);
   backdrop-filter: blur(12px);
   z-index: 100;
+  border-bottom: 1px solid rgba(255,77,109,0.08);
 }
 .brand-title { font-size: 22px; font-weight: 700; }
 .back-btn {
@@ -320,13 +321,13 @@ body::-webkit-scrollbar { display: none; }
 .reseed-btn {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  color: white;
+  background: rgba(255,77,109,0.08);
+  border: 1px solid rgba(255,77,109,0.18);
+  color: #ff4d6d;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; font-size: 16px; transition: 0.2s;
 }
-.reseed-btn:hover    { border-color: var(--accent-green); }
+.reseed-btn:hover    { border-color: #ff4d6d; background: rgba(255,77,109,0.14); }
 .reseed-btn:disabled { opacity: 0.5; cursor: default; }
 
 /* ============================================================
