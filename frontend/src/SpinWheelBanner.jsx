@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+
 import './SpinWheelBanner.css';
 
 const REWARDS = [
@@ -132,8 +134,8 @@ export default function SpinWheelBanner() {
         </div>
       </div>
 
-      {/* Result overlay */}
-      {showResult && reward && (
+      {/* Result overlay — portalled to document.body for true viewport centering */}
+      {showResult && reward && createPortal(
         <div className="reward-overlay" onClick={() => setShowResult(false)}>
           <div className="reward-card" onClick={e => e.stopPropagation()}>
             {/* Confetti particles */}
@@ -159,7 +161,8 @@ export default function SpinWheelBanner() {
               Awesome! 🚀
             </button>
           </div>
-        </div>
+        </div>,
+        document.body   // ← renders directly on <body>, bypasses all stacking contexts
       )}
     </>
   );

@@ -23,7 +23,7 @@ function SkeletonCard() {
 }
 
 // ── Match Screen ──────────────────────────────────────────
-function MatchScreen({ item, onKeepSwiping }) {
+function MatchScreen({ item, onKeepSwiping, onGoBack }) {
   const confetti = Array.from({ length: 18 }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
@@ -77,7 +77,9 @@ function MatchScreen({ item, onKeepSwiping }) {
       </div>
 
       <div className="fs-match-btns">
-        <button className="fs-match-btn-primary">View Details ›</button>
+        <button className="fs-match-btn-primary" onClick={onGoBack}>
+          🛒 View in Cart
+        </button>
         <button className="fs-match-btn-secondary" onClick={onKeepSwiping}>↺ Keep Swiping</button>
       </div>
     </div>
@@ -305,7 +307,11 @@ function FoodSwipe({ onBack, onAddToCart }) {
             transition={{ type: 'spring', stiffness: 280, damping: 24 }}
             style={{ position: 'absolute', inset: 0, zIndex: 200 }}
           >
-            <MatchScreen item={matchItem} onKeepSwiping={dismissMatch} />
+            <MatchScreen
+              item={matchItem}
+              onKeepSwiping={dismissMatch}
+              onGoBack={() => { setMatchItem(null); onBack(); }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
