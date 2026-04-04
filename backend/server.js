@@ -153,10 +153,14 @@ app.post('/api/cart/add', async (req, res) => {
 
 app.post('/api/order/simulate', async (req, res) => {
     try {
-        const existingQueueLength = Math.floor(Math.random() * 5);
-        const existingQueue = Array(existingQueueLength).fill({ status: 'processing' });
+        const ordersAhead = Math.floor(Math.random() * 5);
+        const existingQueue = Array(ordersAhead).fill({ status: 'processing' });
         const queueRes = await runEngine('queue_wait', { queue_orders: existingQueue });
-        res.json({ success: true, waitTimeMinutes: queueRes.wait_time });
+        res.json({
+            success: true,
+            waitTimeMinutes: queueRes.wait_time,
+            ordersAhead,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

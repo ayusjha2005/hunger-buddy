@@ -13,7 +13,7 @@
   --accent-green-hover:#e63359;
   --border-subtle:     rgba(255,77,109,0.14);
   --danger:            #ff3b30;
-  --app-max-width:     480px;
+  --app-max-width:     520px;   /* slightly wider than 480 for more breathing room */
   --pink-glow:         rgba(255,77,109,0.22);
   --pink-light:        #ff85a2;
 }
@@ -2516,4 +2516,163 @@ body:has(.foodies-container[data-theme="dark"]) {
 .theme-toggle-btn:hover {
   background: rgba(255,77,109,0.15);
   transform: rotate(25deg) scale(1.15) !important;
+}
+
+
+/* ============================================================
+   QUEUE-AWARE ORDER BADGE COLORS
+   ============================================================ */
+.ohc-time-badge.fast {
+  background: rgba(74,222,128,0.15);
+  color: #16a34a;
+  border: 1px solid rgba(74,222,128,0.3);
+  animation: fastPulse 2s ease-in-out infinite;
+}
+@keyframes fastPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  50%       { box-shadow: 0 0 0 4px rgba(74,222,128,0.2); }
+}
+.ohc-time-badge.medium {
+  background: rgba(251,191,36,0.15);
+  color: #b45309;
+  border: 1px solid rgba(251,191,36,0.3);
+}
+.ohc-time-badge.busy {
+  background: rgba(248,113,113,0.15);
+  color: #dc2626;
+  border: 1px solid rgba(248,113,113,0.3);
+}
+[data-theme="dark"] .ohc-time-badge.fast  { color: #4ade80; background: rgba(74,222,128,0.12); }
+[data-theme="dark"] .ohc-time-badge.medium{ color: #fbbf24; background: rgba(251,191,36,0.12); }
+[data-theme="dark"] .ohc-time-badge.busy  { color: #f87171; background: rgba(248,113,113,0.12); }
+
+.ohc-ready {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff4d6d;
+  margin: 4px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ohc-ready::before { content: '⏱️'; font-size: 10px; }
+[data-theme="dark"] .ohc-ready { color: #ff7aa2; }
+
+.ohc-queue {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ohc-queue::before { content: '🧑‍🍳'; font-size: 10px; }
+
+
+/* ============================================================
+   BANNER CAROUSEL WRAPPER
+   ============================================================ */
+.bc-outer {
+  padding: 0 0 0;
+  animation: hbFadeSlideUp 0.4s cubic-bezier(0.22,1,0.36,1) 0.08s both;
+}
+
+
+/* ============================================================
+   DESKTOP LAYOUT FIX — Wide 2-column at >= 900px
+   ============================================================ */
+@media (min-width: 900px) {
+  :root {
+    --app-max-width: 960px; /* expand from 520px to 960px on desktop */
+  }
+
+  .foodies-container {
+    max-width: var(--app-max-width);
+    box-shadow:
+      0 0 120px rgba(255,77,109,0.12),
+      0 0 0 1px rgba(255,77,109,0.06) !important;
+  }
+
+  /* Header wider */
+  .top-header {
+    padding: 18px 32px 14px !important;
+  }
+  .brand-title { font-size: 26px !important; }
+
+  /* Banner Carousel: full width with gutter */
+  .bc-outer {
+    padding: 0 24px;
+  }
+
+  /* Sections with more horizontal breathing room */
+  .placed-orders-section { padding: 0 24px; }
+  .spin-banner    { margin: 0 24px 20px !important; }
+  .categories-slider { padding: 6px 24px 18px; }
+  .outlets-vertical { padding: 0 24px 24px; }
+  .section-title { padding: 14px 24px 10px; }
+  .discover-btn  { margin: 0 24px 20px !important; width: calc(100% - 48px) !important; }
+
+  /* 2-column outlet grid on wide desktop */
+  .outlets-vertical {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Wider order history cards */
+  .order-history-card { min-width: 260px; }
+  .order-history-scroll { gap: 16px; }
+
+  /* Menu screen side padding */
+  .menu-feed {
+    padding: 0 8px 80px !important;
+  }
+  .menu-section-header {
+    top: 58px !important;
+  }
+
+  /* Search bar wider */
+  .search-filter-bar { padding: 10px 24px 14px; }
+
+  /* Fix overlays to also respect wider column */
+  .loader-overlay,
+  .order-success-overlay {
+    width: var(--app-max-width) !important;
+    max-width: var(--app-max-width) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  /* Swipe screen pin */
+  .swipe-screen {
+    width: 520px !important;
+    max-width: 520px !important;
+  }
+
+  /* Remove the tiny 'HungerBuddy' watermark — we have a bigger layout now */
+  body::before { display: none !important; }
+
+  /* Floating side glow blobs for desktop ambience */
+  body::after {
+    content: '';
+    position: fixed;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,77,109,0.1) 0%, transparent 70%);
+    top: -100px; left: calc(50% - 700px);
+    pointer-events: none;
+    animation: sideGlob 8s ease-in-out infinite alternate;
+    z-index: -1;
+  }
+  @keyframes sideGlob {
+    from { transform: translateY(0) scale(1); }
+    to   { transform: translateY(60px) scale(1.15); }
+  }
+}
+
+/* Medium screens (tablet) */
+@media (min-width: 600px) and (max-width: 899px) {
+  :root { --app-max-width: 600px; }
+  .bc-outer { padding: 0 12px; }
 }

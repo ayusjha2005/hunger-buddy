@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import FoodSwipe from './FoodSwipe';
 import SpinWheelBanner from './SpinWheelBanner';
+import BannerCarousel from './BannerCarousel';
 import LoginPage from './LoginPage';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -85,6 +86,7 @@ function App() {
   const [orderResult, setOrderResult]         = useState(null);
   const [errorMsg, setErrorMsg]               = useState('');
   const [paymentMethod, setPaymentMethod]     = useState('UPI');
+  const [ordersAhead, setOrdersAhead]         = useState(null); // queue state
 
   const showError = (msg) => { setErrorMsg(msg); setTimeout(() => setErrorMsg(''), 3500); };
 
@@ -199,9 +201,16 @@ function App() {
     fetch(`${API}/order/simulate`, { method: 'POST' })
       .then(r => r.json())
       .then(data => {
+        const ahead = data.ordersAhead ?? Math.floor(Math.random() * 5);
+        setOrdersAhead(ahead);
+        const waitMin = data.waitTimeMinutes || (ahead + 1) * 7;
+        const readyAt = new Date(Date.now() + waitMin * 60000);
+        const readyStr = readyAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         setCheckoutLoading(false);
         setOrderResult({
-          waitTime: data.waitTimeMinutes,
+          waitTime: waitMin,
+          ordersAhead: ahead,
+          readyBy: readyStr,
           scheduledFor: orderTime,
           items: [...cart],
           outlet: selectedOutlet?.name || 'HungerBuddy',
@@ -348,6 +357,15 @@ function App() {
             </div>
           </div>
 
+          {/* ── Banner Carousel ── */}
+          <div className="bc-outer">
+            <BannerCarousel
+              userName={userName}
+              ordersAhead={ordersAhead}
+              onOpenSpin={() => document.querySelector('.spin-btn')?.click()}
+            />
+          </div>
+
           {/* ── My Orders section ── */}
           {placedOrders.length > 0 && (
             <div className="placed-orders-section">
@@ -358,15 +376,27 @@ function App() {
                   onClick={() => { setPlacedOrders([]); localStorage.removeItem('hb_orders'); }}
                 >Clear all</button>
               </div>
-              <div className="order-history-scroll">
+            <div className="order-history-scroll">
                 {placedOrders.map(order => (
                   <div className="order-history-card" key={order.id}>
                     <div className="ohc-top">
                       <span className="ohc-outlet">{order.outlet}</span>
-                      <span className={`ohc-time-badge ${order.scheduledFor === 'ASAP' ? 'asap' : 'scheduled'}`}>
-                        {order.scheduledFor === 'ASAP' ? '⚡ ASAP' : `⏰ ${order.scheduledFor}`}
+                      <span className={`ohc-time-badge ${
+                        order.scheduledFor === 'ASAP'
+                          ? (order.waitTime <= 10 ? 'fast' : order.waitTime <= 20 ? 'medium' : 'busy')
+                          : 'scheduled'
+                      }`}>
+                        {order.scheduledFor === 'ASAP'
+                          ? (order.waitTime <= 10 ? `🟢 ${order.waitTime} min` : order.waitTime <= 20 ? `🟡 ${order.waitTime} min` : `🔴 ${order.waitTime} min`)
+                          : `⏰ ${order.scheduledFor}`}
                       </span>
                     </div>
+                    {order.readyBy && (
+                      <div className="ohc-ready">Ready by {order.readyBy}</div>
+                    )}
+                    {order.ordersAhead != null && (
+                      <div className="ohc-queue">{order.ordersAhead} orders ahead</div>
+                    )}
                     <div className="ohc-items">
                       {order.items.slice(0, 3).map((it, i) => (
                         <span key={i} className="ohc-item-chip">{it.name}</span>
