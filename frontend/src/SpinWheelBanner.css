@@ -300,17 +300,21 @@
 /* ── Result overlay ──────────────────────────────────────── */
 .reward-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(255,240,245,0.82);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255,240,245,0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(12px);
+  z-index: 9999;            /* highest — above everything */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   animation: overlayIn 0.3s ease;
 }
 [data-theme="dark"] .reward-overlay {
-  background: rgba(12, 8, 18, 0.88);
+  background: rgba(10, 6, 18, 0.92);
 }
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
