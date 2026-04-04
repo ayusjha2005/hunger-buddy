@@ -32,10 +32,28 @@ const SUB_CAT_ICON = {
 };
 
 function App() {
+  // ── Theme (dark | light) ─────────────────────────────────────────────────
+  const [theme, setTheme] = useState(() => localStorage.getItem('hb_theme') || 'light');
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('hb_theme', theme);
+  }, [theme]);
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+
   // ── User identity ──────────────────────────────────────────────
   const [userName, setUserName]     = useState('');
   const [nameInput, setNameInput]   = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
+
+  // Time-based greeting
+  const getTimeGreeting = (name) => {
+    const h = new Date().getHours();
+    if (h < 6)  return [`Good night, ${name}! \uD83C\uDF19`, 'Night owl spotted'];
+    if (h < 12) return [`Good morning, ${name}! \uD83C\uDF05`, 'Start the day with great food!'];
+    if (h < 17) return [`Hey, ${name}! \u2600\uFE0F`, 'Craving something delicious?'];
+    if (h < 21) return [`Good evening, ${name}! \uD83C\uDF06`, "What's for dinner tonight?"];
+    return [`Late night hunger, ${name}? \uD83C\uDF19`, "We've got you covered!"];
+  };
 
   // ── App state ──────────────────────────────────────────────────
   const [currentView, setCurrentView]   = useState('home');
@@ -275,7 +293,7 @@ function App() {
   // MAIN APP
   // ════════════════════════════════════════════════════════════════
   return (
-    <div className="foodies-container">
+    <div className="foodies-container" data-theme={theme}>
 
       {/* Error Toast */}
       {errorMsg && <div className="error-toast">⚠️ {errorMsg}</div>}
@@ -317,9 +335,12 @@ function App() {
           <div className="top-header">
             <div>
               <div className="brand-title">Hunger<span>Buddy</span></div>
-              <div className="header-greeting">Hey, {userName} 👋</div>
+              <div className="header-greeting">{getTimeGreeting(userName)[1]}</div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button className="theme-toggle-btn" onClick={toggleTheme} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
               <button className="reseed-btn" onClick={handleLogout} title="Logout" style={{ fontSize: 16 }}>🚪</button>
               <button className="reseed-btn" onClick={seedDataAndStart} title="Reload menu data" disabled={seedLoading}>
                 {seedLoading ? <span className="btn-spinner" /> : '🔄'}

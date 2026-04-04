@@ -1363,3 +1363,437 @@ body::-webkit-scrollbar { display: none; }
 }
 
 
+/* ============================================================
+   DARK / LIGHT THEME SYSTEM
+   Applied via data-theme="dark" on .foodies-container
+   ============================================================ */
+
+/* Light mode is the default (from :root already defined above).
+   Dark mode overrides: */
+[data-theme="dark"],
+:root[data-theme="dark"] {
+  --bg-main:           #0f0f0f;
+  --bg-card:           rgba(30, 30, 35, 0.92);
+  --bg-card-hover:     rgba(42, 42, 50, 0.97);
+  --text-primary:      #f0f0f5;
+  --text-secondary:    #9898b8;
+  --accent-green:      #ff4d8d;
+  --accent-green-hover:#ff2070;
+  --border-subtle:     rgba(255, 77, 141, 0.18);
+  --danger:            #ff3b30;
+  --pink-glow:         rgba(255, 77, 141, 0.28);
+  --pink-light:        #ff7aa2;
+}
+
+/* Dark body/gutter */
+[data-theme="dark"] ~ body,
+body:has([data-theme="dark"]) {
+  background: linear-gradient(135deg, #0a0010 0%, #0f0f0f 50%, #0a0a14 100%);
+}
+
+/* Target the container for dark styles */
+.foodies-container[data-theme="dark"] {
+  background: #0f0f0f;
+  box-shadow:
+    0 0 80px rgba(255,77,141,0.14),
+    0 0 200px rgba(255,77,141,0.06),
+    0 0 0 1px rgba(255,77,141,0.08);
+}
+
+/* ── Theme transition — silky smooth ── */
+.foodies-container,
+.foodies-container * {
+  transition-property: background-color, background, color, border-color, box-shadow;
+  transition-duration: 0.35s;
+  transition-timing-function: ease;
+}
+/* Exclude animation-heavy elements from the blanket transition */
+.foodies-container *[style*="transform"],
+.foodies-container canvas,
+.foodies-container .wheel,
+.foodies-container .fs-card,
+.foodies-container .swipe-card {
+  transition-property: background-color, color, border-color;
+}
+
+/* ── Dark top header ── */
+.foodies-container[data-theme="dark"] .top-header {
+  background: rgba(15, 15, 15, 0.93);
+  border-bottom: 1px solid rgba(255, 77, 141, 0.12);
+  box-shadow: 0 2px 24px rgba(255, 77, 141, 0.08);
+}
+
+/* ── Dark card glass ── */
+.foodies-container[data-theme="dark"] .outlet-card-v,
+.foodies-container[data-theme="dark"] .menu-item-card,
+.foodies-container[data-theme="dark"] .order-history-card,
+.foodies-container[data-theme="dark"] .cart-item-row {
+  background: rgba(30, 30, 38, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 77, 141, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,77,141,0.06);
+}
+
+/* Dark menu item card */
+.foodies-container[data-theme="dark"] .menu-item-card:hover {
+  background: rgba(42, 42, 52, 0.97);
+  box-shadow: 0 16px 48px rgba(255,77,141,0.15), 0 0 0 1px rgba(255,77,141,0.18);
+}
+
+/* ── Theme toggle button ── */
+.theme-toggle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-card);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s, background 0.35s !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.theme-toggle-btn:hover {
+  transform: rotate(20deg) scale(1.1);
+  box-shadow: 0 4px 18px var(--pink-glow);
+}
+.foodies-container[data-theme="dark"] .theme-toggle-btn {
+  box-shadow: 0 2px 14px rgba(255,77,141,0.2);
+  border-color: rgba(255,77,141,0.25);
+}
+
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(28px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255,77,109,0.25), 0 4px 16px rgba(0,0,0,0.12); }
+  50%       { box-shadow: 0 0 28px rgba(255,77,109,0.55), 0 6px 22px rgba(0,0,0,0.18); }
+}
+
+@keyframes neonGlowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,77,141,0.3), 0 0 20px rgba(255,77,141,0.15); }
+  50%       { box-shadow: 0 0 20px rgba(255,77,141,0.7), 0 0 40px rgba(255,77,141,0.35); }
+}
+
+@keyframes bgGlowDrift {
+  0%   { transform: translateX(-50%) translateY(0) scale(1); }
+  50%  { transform: translateX(-50%) translateY(40px) scale(1.08); }
+  100% { transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes borderShimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+/* ============================================================
+   PAGE ENTRANCE ANIMATIONS
+   ============================================================ */
+
+.fade-in {
+  animation: fadeSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered outlet cards */
+.outlet-card-v:nth-child(1) { animation: cardEntrance 0.45s 0.05s cubic-bezier(0.22,1,0.36,1) both; }
+.outlet-card-v:nth-child(2) { animation: cardEntrance 0.45s 0.12s cubic-bezier(0.22,1,0.36,1) both; }
+.outlet-card-v:nth-child(3) { animation: cardEntrance 0.45s 0.19s cubic-bezier(0.22,1,0.36,1) both; }
+.outlet-card-v:nth-child(4) { animation: cardEntrance 0.45s 0.26s cubic-bezier(0.22,1,0.36,1) both; }
+.outlet-card-v:nth-child(5) { animation: cardEntrance 0.45s 0.33s cubic-bezier(0.22,1,0.36,1) both; }
+.outlet-card-v:nth-child(6) { animation: cardEntrance 0.45s 0.40s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* Staggered menu items */
+.menu-item-card:nth-child(1) { animation: cardEntrance 0.4s 0.04s cubic-bezier(0.22,1,0.36,1) both; }
+.menu-item-card:nth-child(2) { animation: cardEntrance 0.4s 0.10s cubic-bezier(0.22,1,0.36,1) both; }
+.menu-item-card:nth-child(3) { animation: cardEntrance 0.4s 0.16s cubic-bezier(0.22,1,0.36,1) both; }
+.menu-item-card:nth-child(4) { animation: cardEntrance 0.4s 0.22s cubic-bezier(0.22,1,0.36,1) both; }
+.menu-item-card:nth-child(5) { animation: cardEntrance 0.4s 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+.menu-item-card:nth-child(n+6) { animation: cardEntrance 0.4s 0.34s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ============================================================
+   CARD HOVER LIFT EFFECTS
+   ============================================================ */
+
+.outlet-card-v {
+  transition:
+    transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.28s ease,
+    background 0.35s ease !important;
+  will-change: transform;
+}
+.outlet-card-v:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 50px rgba(255,77,109,0.22), 0 8px 20px rgba(0,0,0,0.14);
+}
+
+.menu-item-card {
+  transition:
+    transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.25s ease,
+    background 0.35s ease !important;
+  will-change: transform;
+}
+.menu-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(255,77,109,0.18), 0 4px 16px rgba(0,0,0,0.1);
+}
+
+/* ============================================================
+   BUTTON ANIMATIONS & GLOW
+   ============================================================ */
+
+/* Primary action buttons — pulsing glow */
+.btn-large,
+.btn-get-started,
+.lp-btn-primary {
+  transition:
+    transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.25s ease !important;
+  animation: glowPulse 2.8s ease-in-out infinite;
+}
+.btn-large:hover,
+.btn-get-started:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+.btn-large:active,
+.btn-get-started:active {
+  transform: scale(0.97);
+  animation: none;
+}
+
+/* Dark mode: neon pink glow on buttons */
+.foodies-container[data-theme="dark"] .btn-large,
+.foodies-container[data-theme="dark"] .btn-get-started {
+  animation: neonGlowPulse 2.5s ease-in-out infinite;
+}
+
+/* Add to cart button bounce */
+.add-btn,
+.menu-add-btn {
+  transition:
+    transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.22s ease,
+    background 0.25s ease !important;
+}
+.add-btn:hover,
+.menu-add-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 18px rgba(255,77,109,0.4);
+}
+.add-btn:active,
+.menu-add-btn:active {
+  transform: scale(0.88);
+}
+
+/* Reseed / icon buttons */
+.reseed-btn {
+  transition:
+    transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.25s ease,
+    background 0.35s ease !important;
+}
+.reseed-btn:hover:not(:disabled) {
+  transform: scale(1.12) rotate(-8deg);
+}
+
+/* ============================================================
+   NAVIGATION BAR ACTIVE GLOW
+   ============================================================ */
+
+.nav-item {
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), color 0.25s ease !important;
+  position: relative;
+}
+.nav-item:hover { transform: translateY(-2px) scale(1.08); }
+.nav-item.active {
+  color: var(--accent-green);
+}
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  background: var(--accent-green);
+  border-radius: 2px;
+  box-shadow: 0 0 10px var(--accent-green), 0 0 20px var(--pink-glow);
+}
+.foodies-container[data-theme="dark"] .nav-item.active::after {
+  animation: neonGlowPulse 2.5s ease-in-out infinite;
+  box-shadow: 0 0 14px rgba(255,77,141,0.8), 0 0 28px rgba(255,77,141,0.5);
+}
+
+/* ============================================================
+   CATEGORY CHIPS ENHANCED
+   ============================================================ */
+
+.category-item {
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s !important;
+}
+.category-item:hover { transform: scale(1.1) translateY(-2px); }
+
+.category-chip {
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.category-chip.active {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* ============================================================
+   GLOW BLOB BACKGROUNDS FOR DESKTOP
+   ============================================================ */
+
+/* Animated pulsing glow blob behind the app */
+body::before {
+  content: '';
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  left: 50%;
+  top: 15%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at center, var(--pink-glow) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: bgGlowDrift 10s ease-in-out infinite;
+  opacity: 0.5;
+}
+body::after {
+  content: '';
+  position: fixed;
+  width: 350px;
+  height: 350px;
+  left: 50%;
+  bottom: 10%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at center, rgba(255,133,162,0.2) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: bgGlowDrift 14s ease-in-out infinite reverse;
+  opacity: 0.4;
+}
+
+/* ============================================================
+   GLASSMORPHISM ELEVATION SYSTEM
+   ============================================================ */
+
+.foodies-container[data-theme="dark"] .spin-banner {
+  background: rgba(25, 20, 30, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,77,141,0.18);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 24px rgba(255,77,141,0.1);
+}
+
+.foodies-container[data-theme="dark"] .spin-btn {
+  animation: neonGlowPulse 2.5s ease-in-out infinite;
+}
+
+.foodies-container[data-theme="dark"] .wheel {
+  box-shadow: 0 0 30px rgba(255,77,141,0.3), 0 0 60px rgba(255,77,141,0.15), inset 0 0 10px rgba(0,0,0,0.3);
+}
+
+/* Spinning wheel extra dark glow */
+.foodies-container[data-theme="dark"] .wheel[style*="4s"] {
+  box-shadow: 0 0 50px rgba(255,77,141,0.6), 0 0 100px rgba(255,77,141,0.3);
+}
+
+/* ============================================================
+   SECTION SPACING & BREATHING ROOM
+   ============================================================ */
+
+.placed-orders-section  { margin: 0 0 8px; }
+.section-title          { padding: 14px 20px 10px; }
+.categories-slider      { padding: 6px 20px 18px; }
+.spin-banner            { margin: 0 20px 20px; }
+
+/* Increased card spacing */
+.outlet-card-v          { margin-bottom: 2px; }
+
+/* ============================================================
+   SEARCH & INPUT GLOW FOCUS
+   ============================================================ */
+
+.search-bar:focus-within,
+.search-input:focus {
+  box-shadow: 0 0 0 2px var(--accent-green), 0 4px 20px var(--pink-glow) !important;
+}
+
+/* ============================================================
+   DARK MODE BOTTOM NAV
+   ============================================================ */
+
+.foodies-container[data-theme="dark"] .bottom-nav {
+  background: rgba(12, 12, 16, 0.96);
+  border-top: 1px solid rgba(255,77,141,0.12);
+  box-shadow: 0 -4px 24px rgba(255,77,141,0.08);
+}
+
+/* Cart badge dark glow */
+.foodies-container[data-theme="dark"] .cart-badge {
+  box-shadow: 0 0 10px rgba(255,77,141,0.6);
+}
+
+/* ============================================================
+   DISCOVER MODE CARD (home hero)
+   ============================================================ */
+
+.discover-card {
+  transition:
+    transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.28s ease !important;
+}
+.discover-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(255,77,109,0.22);
+}
+.foodies-container[data-theme="dark"] .discover-card {
+  background: rgba(30,20,35,0.92);
+  border: 1px solid rgba(255,77,141,0.15);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 20px rgba(255,77,141,0.08);
+  animation: neonGlowPulse 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   ORDER SUCCESS OVERLAY DARK
+   ============================================================ */
+
+.foodies-container[data-theme="dark"] .order-success-card {
+  background: rgba(20, 15, 25, 0.98);
+  border: 1px solid rgba(255,77,141,0.2);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 40px rgba(255,77,141,0.15);
+}
+
+/* ============================================================
+   BRAND TITLE DARK GLOW
+   ============================================================ */
+
+.foodies-container[data-theme="dark"] .brand-title {
+  text-shadow: 0 0 20px rgba(255,77,141,0.4);
+}
+.foodies-container[data-theme="dark"] .brand-title span {
+  color: #ff4d8d;
+  text-shadow: 0 0 28px rgba(255,77,141,0.7), 0 0 50px rgba(255,77,141,0.35);
+}

@@ -3,7 +3,48 @@
    Tinder-style food discovery UI
    ============================================================ */
 
-/* ── Root screen ─────────────────────────────────────────── */
+/* Dark mode overrides for swipe screen */
+[data-theme="dark"] .fs-screen {
+  background: linear-gradient(145deg, #0f0f18 0%, #12101a 100%);
+}
+[data-theme="dark"] .fs-header {
+  background: rgba(12, 12, 18, 0.92);
+  border-bottom: 1px solid rgba(255,77,141,0.12);
+  box-shadow: 0 2px 20px rgba(255,77,141,0.08);
+}
+[data-theme="dark"] .fs-card {
+  background: rgba(25, 20, 32, 0.94);
+  border-color: rgba(255,77,141,0.2);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 40px rgba(255,77,141,0.1);
+}
+[data-theme="dark"] .fs-card--top {
+  animation: darkCardGlow 3s ease-in-out infinite alternate;
+}
+@keyframes darkCardGlow {
+  0%   { box-shadow: 0 24px 60px rgba(0,0,0,0.65), 0 0 0 0 rgba(255,77,141,0); }
+  100% { box-shadow: 0 24px 60px rgba(0,0,0,0.65), 0 0 40px 6px rgba(255,77,141,0.25); }
+}
+[data-theme="dark"] .fs-card__body { background: rgba(20,15,28,0.98); }
+[data-theme="dark"] .fs-card__outlet { background: rgba(255,77,141,0.15); }
+[data-theme="dark"] .fs-card__name { color: #f0f0f5; }
+[data-theme="dark"] .fs-card__desc { color: rgba(200,200,220,0.65); }
+[data-theme="dark"] .fs-fab--nope {
+  background: rgba(30,25,38,0.95);
+  border-color: rgba(255,77,141,0.2);
+  color: #ff4d8d;
+}
+[data-theme="dark"] .fs-cart-badge {
+  background: linear-gradient(135deg, #ff4d8d, #ff85a2);
+  box-shadow: 0 4px 16px rgba(255,77,141,0.4);
+}
+[data-theme="dark"] .fs-back-btn {
+  background: rgba(255,77,141,0.1);
+  color: #ff4d8d;
+}
+[data-theme="dark"] .fs-title { color: #f0f0f5; }
+[data-theme="dark"] .fs-step-label { color: rgba(255,77,141,0.5); }
+
+
 .fs-screen {
   position: fixed;
   inset: 0;
