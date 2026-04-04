@@ -46,6 +46,15 @@ function App() {
   const [searchQuery, setSearchQuery]   = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
+  // ── Order scheduling ────────────────────────────────────────────
+  const [scheduleMode, setScheduleMode]   = useState('now');   // 'now' | 'later'
+  const [scheduleTime, setScheduleTime]   = useState('');
+
+  // ── Placed order history (persisted) ────────────────────────────
+  const [placedOrders, setPlacedOrders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('hb_orders') || '[]'); } catch { return []; }
+  });
+
   // ── Loading / feedback ──────────────────────────────────────────
   const [splashLoading, setSplashLoading]     = useState(true);
   const [menuLoading, setMenuLoading]         = useState(false);
@@ -168,13 +177,34 @@ function App() {
   const handleCheckout = () => {
     if (cart.length === 0) return;
     setCheckoutLoading(true);
+    const orderTime = scheduleMode === 'now' ? 'ASAP' : scheduleTime;
     fetch(`${API}/order/simulate`, { method: 'POST' })
       .then(r => r.json())
-      .then(data => { setCheckoutLoading(false); setOrderResult({ waitTime: data.waitTimeMinutes }); setCart([]); })
+      .then(data => {
+        setCheckoutLoading(false);
+        setOrderResult({
+          waitTime: data.waitTimeMinutes,
+          scheduledFor: orderTime,
+          items: [...cart],
+          outlet: selectedOutlet?.name || 'HungerBuddy',
+          total: cart.reduce((s, i) => s + i.price, 0),
+          placedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        });
+        setCart([]);
+      })
       .catch(() => { setCheckoutLoading(false); showError('Payment failed.'); });
   };
 
-  const dismissOrder = () => { setOrderResult(null); setCurrentView('home'); };
+  const dismissOrder = () => {
+    if (orderResult) {
+      const newOrder = { ...orderResult, id: Date.now() };
+      const updated = [newOrder, ...placedOrders].slice(0, 10); // keep last 10
+      setPlacedOrders(updated);
+      localStorage.setItem('hb_orders', JSON.stringify(updated));
+    }
+    setOrderResult(null);
+    setCurrentView('home');
+  };
 
   // ── Menu grouping ───────────────────────────────────────────────
   const menuGrouped = useMemo(() => {
@@ -256,11 +286,14 @@ function App() {
           <div className="order-success-card" onClick={e => e.stopPropagation()}>
             <div className="order-success-icon">🎉</div>
             <h2 className="order-success-title">Thank you for ordering, {userName}!</h2>
-            <p className="order-success-sub">Order is confirmed. Estimated wait time:</p>
+            <p className="order-success-sub">Order confirmed from <strong>{orderResult?.outlet}</strong></p>
             <div className="order-wait-badge">
-              <span className="order-wait-time">{orderResult.waitTime}</span>
+              <span className="order-wait-time">{orderResult?.waitTime}</span>
               <span className="order-wait-label">mins</span>
             </div>
+            {orderResult?.scheduledFor && orderResult.scheduledFor !== 'ASAP' && (
+              <div className="order-scheduled-tag">⏰ Scheduled for {orderResult.scheduledFor}</div>
+            )}
             <p className="order-success-hint">Sit back &amp; relax — your food is being prepared 🍳</p>
             <button className="btn-large order-success-btn" onClick={dismissOrder}>Back to Home</button>
           </div>
@@ -294,7 +327,42 @@ function App() {
             </div>
           </div>
 
-          {/* Spin Wheel Banner replaces Special offers */}
+          {/* ── My Orders section ── */}
+          {placedOrders.length > 0 && (
+            <div className="placed-orders-section">
+              <div className="section-title" style={{ marginBottom: 10 }}>
+                <h3>🧾 My Orders</h3>
+                <button
+                  style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  onClick={() => { setPlacedOrders([]); localStorage.removeItem('hb_orders'); }}
+                >Clear all</button>
+              </div>
+              <div className="order-history-scroll">
+                {placedOrders.map(order => (
+                  <div className="order-history-card" key={order.id}>
+                    <div className="ohc-top">
+                      <span className="ohc-outlet">{order.outlet}</span>
+                      <span className={`ohc-time-badge ${order.scheduledFor === 'ASAP' ? 'asap' : 'scheduled'}`}>
+                        {order.scheduledFor === 'ASAP' ? '⚡ ASAP' : `⏰ ${order.scheduledFor}`}
+                      </span>
+                    </div>
+                    <div className="ohc-items">
+                      {order.items.slice(0, 3).map((it, i) => (
+                        <span key={i} className="ohc-item-chip">{it.name}</span>
+                      ))}
+                      {order.items.length > 3 && <span className="ohc-item-chip">+{order.items.length - 3} more</span>}
+                    </div>
+                    <div className="ohc-bottom">
+                      <span className="ohc-total">₹{order.total}</span>
+                      <span className="ohc-placed">Placed at {order.placedAt}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Spin Wheel Banner */}
           <SpinWheelBanner />
 
           {/* Category Chips */}
@@ -332,7 +400,7 @@ function App() {
             </button>
           )}
 
-          {/* Outlets */}
+          {/* Outlets — vertical list */}
           <div className="section-title" style={{ marginTop: 4 }}>
             <h3>
               {activeCategory === 'All'
@@ -342,7 +410,6 @@ function App() {
             {activeCategory === 'All' && <span style={{ color: 'var(--accent-green)', fontSize: 13 }}>See all</span>}
           </div>
 
-          {/* No outlets match */}
           {filteredOutlets.length === 0 && (
             <div className="empty-menu">
               <span>🔍</span>
@@ -351,17 +418,19 @@ function App() {
             </div>
           )}
 
-          <div className="outlets-horizontal">
+          <div className="outlets-vertical">
             {filteredOutlets.map(o => (
-              <div className="outlet-card" key={o._id} onClick={() => openOutletMenu(o)}>
-                <div className="outlet-img-wrapper">
+              <div className="outlet-card-v" key={o._id} onClick={() => openOutletMenu(o)}>
+                <div className="outlet-card-v__img">
                   <img src={o.imageUrl} alt={o.name} />
                   <div className="outlet-rating">★ {o.rating}</div>
                 </div>
-                <div className="outlet-info">
+                <div className="outlet-card-v__info">
                   <h4>{o.name}</h4>
                   <p>{o.location}</p>
+                  <span className="outlet-open-tag">Open Now</span>
                 </div>
+                <div className="outlet-card-v__arrow">›</div>
               </div>
             ))}
           </div>
@@ -500,6 +569,37 @@ function App() {
                 <span>{cart.length} item{cart.length > 1 ? 's' : ''}</span>
                 <span className="menu-feed-price">₹{cartTotal}</span>
               </div>
+
+              {/* ── Schedule Order ── */}
+              <div className="schedule-section">
+                <h3>🕐 Schedule Order</h3>
+                <div className="schedule-options">
+                  <button
+                    className={`schedule-opt ${scheduleMode === 'now' ? 'active' : ''}`}
+                    onClick={() => setScheduleMode('now')}
+                  >
+                    ⚡ Right Now
+                  </button>
+                  <button
+                    className={`schedule-opt ${scheduleMode === 'later' ? 'active' : ''}`}
+                    onClick={() => setScheduleMode('later')}
+                  >
+                    ⏰ Schedule for Later
+                  </button>
+                </div>
+                {scheduleMode === 'later' && (
+                  <div className="schedule-time-wrap">
+                    <label>Pick a time</label>
+                    <input
+                      type="time"
+                      className="schedule-time-input"
+                      value={scheduleTime}
+                      onChange={e => setScheduleTime(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="payment-section">
                 <h3 style={{ marginBottom: 15 }}>Payment Method</h3>
                 {['UPI', 'Credit/Debit Card', 'Net Banking'].map(method => (
@@ -510,8 +610,15 @@ function App() {
                   </div>
                 ))}
               </div>
-              <button className="btn-large" onClick={handleCheckout} disabled={checkoutLoading}>
-                {checkoutLoading ? <><span className="btn-spinner" /> Processing…</> : <>Pay ₹{cartTotal} via {paymentMethod}</>}
+              <button
+                className="btn-large"
+                onClick={handleCheckout}
+                disabled={checkoutLoading || (scheduleMode === 'later' && !scheduleTime)}
+              >
+                {checkoutLoading
+                  ? <><span className="btn-spinner" /> Processing…</>
+                  : <>Pay ₹{cartTotal} via {paymentMethod}{scheduleMode === 'later' && scheduleTime ? ` · 🕐 ${scheduleTime}` : ''}</>
+                }
               </button>
             </>
           )}
